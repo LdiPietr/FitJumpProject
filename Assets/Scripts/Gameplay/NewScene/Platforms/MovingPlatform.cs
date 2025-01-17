@@ -2,8 +2,13 @@ using UnityEngine;
 
 public class MovingPlatform : Platform
 {
-    public float moveSpeed = 2f;
-    public float moveDistance = 2f;
+    public float minMoveSpeed = 1f;
+    public float maxMoveSpeed = 5f;
+    public float minMoveDistance = 1f;
+    public float maxMoveDistance = 3f;
+
+    private float moveSpeed;
+    private float moveDistance;
     
     private Vector3 startPosition;
     private bool movingRight = true;
@@ -12,6 +17,10 @@ public class MovingPlatform : Platform
     {
         type = PlatformType.Moving;
         startPosition = transform.position;
+
+        // Assegna valori casuali all'interno degli intervalli
+        moveSpeed = Random.Range(minMoveSpeed, maxMoveSpeed);
+        moveDistance = Random.Range(minMoveDistance, maxMoveDistance);
     }
 
     private void Update()

@@ -1,39 +1,59 @@
 using UnityEngine;
+using System.Collections;
 
 public class DisappearingPlatform : Platform
 {
-    public float disappearDelay = 0.5f;
-    public float reappearDelay = 2f;
+    public float minVisibleDuration = 1f;
+    public float maxVisibleDuration = 3f;
+    public float minInvisibleDuration = 0.5f;
+    public float maxInvisibleDuration = 1.5f;
+
+    private float visibleDuration;
+    private float invisibleDuration;
 
     private SpriteRenderer spriteRenderer;
     private BoxCollider2D boxCollider;
+    private bool isVisible = true;
 
     private void Start()
     {
         type = PlatformType.Disappearing;
         spriteRenderer = GetComponent<SpriteRenderer>();
         boxCollider = GetComponent<BoxCollider2D>();
+
+        // Assegna durate casuali all'interno degli intervalli
+        visibleDuration = Random.Range(minVisibleDuration, maxVisibleDuration);
+        invisibleDuration = Random.Range(minInvisibleDuration, maxInvisibleDuration);
+
+        StartCoroutine(CycleVisibility());
     }
 
-    protected override void OnPlayerLand()
+    private IEnumerator CycleVisibility()
     {
-        if (!isActive) return;
-        
-        isActive = false;
-        Invoke("Disappear", disappearDelay);
+        while (true)
+        {
+            if (isVisible)
+            {
+                // La piattaforma è visibile
+                boxCollider.enabled = true;
+                SetAlpha(1f);
+                yield return new WaitForSeconds(visibleDuration);
+            }
+            else
+            {
+                // La piattaforma è invisibile
+                boxCollider.enabled = false;
+                SetAlpha(0f);
+                yield return new WaitForSeconds(invisibleDuration);
+            }
+            isVisible = !isVisible;
+        }
     }
 
-    private void Disappear()
+    private void SetAlpha(float alpha)
     {
-        spriteRenderer.enabled = false;
-        boxCollider.enabled = false;
-        Invoke("Reappear", reappearDelay);
-    }
-
-    private void Reappear()
-    {
-        spriteRenderer.enabled = true;
-        boxCollider.enabled = true;
-        isActive = true;
+        Color color = spriteRenderer.color;
+        color.a = alpha;
+        spriteRenderer.color = color;
     }
 }

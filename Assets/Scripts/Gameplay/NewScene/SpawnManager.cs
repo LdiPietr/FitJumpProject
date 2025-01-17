@@ -6,12 +6,12 @@ public class SpawnManager : MonoBehaviour
     public SpawnWeightManager weightManager;
     public float minX = -5f;
     public float maxX = 5f;
-    private float verticalSpawnDistance = 1.2f; // Ridotto per aumentare densità
-    private float maxHorizontalGap = 1.8f; // Massima distanza orizzontale tra piattaforme
+    public float verticalSpawnDistance = 1.2f; // Ridotto per aumentare densità
+    public float maxHorizontalGap = 1.8f; // Massima distanza orizzontale tra piattaforme
     private Vector2 lastPlatformPosition;
-    private float destroyBelowY = -14f;
-    private float spawnAboveY = 4f;
-    private float platformDensityMultiplier = 2f;
+    public float destroyBelowY = -14f;
+    public float spawnAboveY = 4f;
+    public float platformDensityMultiplier = 2f;
 
     private List<GameObject> activePlatforms = new List<GameObject>();
     private float lastSpawnY;

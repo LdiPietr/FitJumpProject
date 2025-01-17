@@ -11,10 +11,9 @@ public class SwipeTest : MonoBehaviour
 
     public TouchPhase touchPhase = TouchPhase.Stop;
 
-    public float speed = 10.0f;
-    public float currentPosition = 0.0f;
+    public float speed = 19.5f;
     public float lastPosition = 0.0f;
-    public float tolerance = 0.3f;
+    public float tolerance = 0.1f;
     public float moveInput;
 
     public TextMeshProUGUI touch;
@@ -39,10 +38,11 @@ public class SwipeTest : MonoBehaviour
                 var delta = Input.mousePosition.x - lastPosition;
                 if (Mathf.Abs(delta) > tolerance)
                 {
+                    var screen = Screen.width * 0.00001f;
                     moveInput = delta;
                     lastPosition = Input.mousePosition.x;
                     var vector3 = transform.position;
-                    vector3.x = vector3.x + moveInput * Time.deltaTime * speed;
+                    vector3.x += moveInput * screen * Time.deltaTime * speed;
                     transform.position = vector3;
                 }
                 else

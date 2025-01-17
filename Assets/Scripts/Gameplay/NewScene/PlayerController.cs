@@ -1,16 +1,25 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
-    private float swipeThreshold;
-    public float screenPerCent = 2f;
-    private Vector3 initialTouchPosition;
-    private Vector3 endTouchPosition;
+    
+    public enum TouchPhase
+    {
+        Start,
+        Stop
+    }
 
+    public TouchPhase touchPhase = TouchPhase.Stop;
+
+    public float speed = 19.5f;
+    public float lastPosition = 0.0f;
+    public float tolerance = 0.1f;
+    public float moveInput;
+
+    
     // Power-up properties
     private bool hasShield;
     private bool hasJetpack;
@@ -21,7 +30,7 @@ public class PlayerController : MonoBehaviour
     // Components
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
-
+    
     private float highestY;
     private float lastComboHeight;
     public float comboHeightThreshold = 5f;
@@ -33,13 +42,12 @@ public class PlayerController : MonoBehaviour
     {
         Instance = this;
     }
-
+    
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        // shieldVisual.SetActive(false);
-        swipeThreshold = Screen.width * screenPerCent / 100;
+        //shieldVisual.SetActive(false);
     }
 
     private void Update()
@@ -47,60 +55,81 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandlePowerUps();
         CheckScreenWrap();
-        UpdateScoreAndDifficulty();
+        if (transform.position.y > highestY)
+        {
+            float heightDifference = transform.position.y - highestY;
+            GameplayManager.Instance.AddScore(Mathf.RoundToInt(heightDifference * 10));
+        
+            // Aumenta difficoltà in base all'altezza
+            GameplayManager.Instance.difficulty = highestY / 50f; // Ogni 50 unità = +1 difficoltà
+        
+            // Gestione combo
+            if (transform.position.y - lastComboHeight >= comboHeightThreshold)
+            {
+                GameplayManager.Instance.IncreaseCombo();
+                lastComboHeight = transform.position.y;
+            }
+        
+            highestY = transform.position.y;
+        }
+        else if (transform.position.y < lastComboHeight - comboHeightThreshold)
+        {
+            // Reset combo se scende troppo
+            GameplayManager.Instance.ResetCombo();
+            lastComboHeight = transform.position.y;
+        }
+
+        if (transform.position.y < Camera.main.transform.position.y - 5f)
+        {
+            GameplayManager.Instance.GameOver();
+            gameObject.SetActive(false);
+        }
     }
 
     private void HandleMovement()
     {
-        if (Input.touchCount == 1) // User is touching the screen with a single touch
+        if (Input.GetMouseButton(0))
         {
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            if (touchPhase == TouchPhase.Stop)
             {
-                initialTouchPosition = Input.GetTouch(0).position;
+                touchPhase = TouchPhase.Start;
+                lastPosition = Input.mousePosition.x;
             }
-
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+            else
             {
-                endTouchPosition = Input.GetTouch(0).position;
-
-                float deltaX = initialTouchPosition.x - endTouchPosition.x;
-                float deltaY = initialTouchPosition.y - endTouchPosition.y;
-
-                float distance = Mathf.Sqrt((deltaX * deltaX) + (deltaY * deltaY));
-
-                if (distance > swipeThreshold)
+                var delta = Input.mousePosition.x - lastPosition;
+                if (Mathf.Abs(delta) > tolerance)
                 {
-                    if (deltaX < 0) // Swipe left
-                    {
-                        MovePlayerLeft();
-                    }
-                    else if (deltaX > 0) // Swipe right
-                    {
-                        MovePlayerRight();
-                    }
+                    var screen = Screen.width * 0.00001f;
+                    moveInput = delta;
+                    lastPosition = Input.mousePosition.x;
+                    
+                    // Calcola la posizione target
+                    float targetX = transform.position.x + moveInput * screen * speed;
+                    
+                    // Interpola in modo fluido verso la posizione target
+                    float smoothX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * moveSpeed);
+                    
+                    transform.position = new Vector3(smoothX, transform.position.y, transform.position.z);
+                }
+                else
+                {
+                    moveInput = 0.0f;
                 }
             }
         }
-
+        else if (Input.GetMouseButtonUp(0))
+        {
+            touchPhase = TouchPhase.Stop;
+            moveInput = 0.0f;
+        }
+    
         if (hasJetpack)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jetpackForce);
         }
     }
 
-    void MovePlayerLeft()
-    {
-        Vector3 newPosition = transform.position;
-        newPosition.x -= 5f; // Adjust the distance as needed
-        transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime * 5f);
-    }
-
-    void MovePlayerRight()
-    {
-        Vector3 newPosition = transform.position;
-        newPosition.x += 5f; // Adjust the distance as needed
-        transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime * 5f);
-    }
 
     private void HandlePowerUps()
     {
@@ -123,10 +152,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     private void CheckScreenWrap()
     {
         Vector2 screenBounds = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
-
+        
         if (transform.position.x > screenBounds.x)
         {
             transform.position = new Vector3(-screenBounds.x, transform.position.y, 0);
@@ -134,39 +164,6 @@ public class PlayerController : MonoBehaviour
         else if (transform.position.x < -screenBounds.x)
         {
             transform.position = new Vector3(screenBounds.x, transform.position.y, 0);
-        }
-    }
-
-    private void UpdateScoreAndDifficulty()
-    {
-        if (transform.position.y > highestY)
-        {
-            float heightDifference = transform.position.y - highestY;
-            GameplayManager.Instance.AddScore(Mathf.RoundToInt(heightDifference * 10));
-
-            // Aumenta difficoltà in base all'altezza
-            GameplayManager.Instance.difficulty = highestY / 50f; // Ogni 50 unità = +1 difficoltà
-
-            // Gestione combo
-            if (transform.position.y - lastComboHeight >= comboHeightThreshold)
-            {
-                GameplayManager.Instance.IncreaseCombo();
-                lastComboHeight = transform.position.y;
-            }
-
-            highestY = transform.position.y;
-        }
-        else if (transform.position.y < lastComboHeight - comboHeightThreshold)
-        {
-            // Reset combo se scende troppo
-            GameplayManager.Instance.ResetCombo();
-            lastComboHeight = transform.position.y;
-        }
-
-        if (transform.position.y < Camera.main.transform.position.y - 5f)
-        {
-            GameplayManager.Instance.GameOver();
-            gameObject.SetActive(false);
         }
     }
 
@@ -230,4 +227,5 @@ public class PlayerController : MonoBehaviour
             Destroy(other.gameObject);
         }
     }
+
 }

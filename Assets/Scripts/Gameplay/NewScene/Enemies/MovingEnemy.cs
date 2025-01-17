@@ -2,9 +2,14 @@ using UnityEngine;
 
 public class MovingEnemy : Enemy
 {
-    public float moveSpeed = 3f;
-    public float moveDistance = 3f;
-    
+    public float minMoveSpeed = 2f;
+    public float maxMoveSpeed = 5f;
+    public float minMoveDistance = 2f;
+    public float maxMoveDistance = 5f;
+
+    private float moveSpeed;
+    private float moveDistance;
+
     private Vector3 startPosition;
     private bool movingRight = true;
 
@@ -12,6 +17,10 @@ public class MovingEnemy : Enemy
     {
         type = EnemyType.Moving;
         startPosition = transform.position;
+
+        // Assegna valori casuali all'interno degli intervalli
+        moveSpeed = Random.Range(minMoveSpeed, maxMoveSpeed);
+        moveDistance = Random.Range(minMoveDistance, maxMoveDistance);
     }
 
     private void Update()
