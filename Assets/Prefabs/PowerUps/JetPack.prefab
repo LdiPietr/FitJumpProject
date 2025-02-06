@@ -61,9 +61,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Size.x
+      value: 3.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Size.y
+      value: 3.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: ea5547bcdee4e4a8cb4705499aabe76d, type: 3}
+      objectReference: {fileID: 21300000, guid: ee31b1a7293fe0c4eaa17084b1f81edc, type: 3}
     - target: {fileID: 3671088032826532078, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: m_Name
       value: JetPack

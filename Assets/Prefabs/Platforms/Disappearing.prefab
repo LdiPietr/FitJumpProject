@@ -162,5 +162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 3
-  disappearDelay: 0.1
-  reappearDelay: 1
+  minVisibleDuration: 2
+  maxVisibleDuration: 5
+  minInvisibleDuration: 0.5
+  maxInvisibleDuration: 1

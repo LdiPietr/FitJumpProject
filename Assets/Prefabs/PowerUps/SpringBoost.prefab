@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 4267789814704708019, guid: d8bf9133c115dec47bdf8bbbe3347d11, type: 3}
     - target: {fileID: 3671088032826532078, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: m_Name
       value: SpringBoost
@@ -67,6 +71,10 @@ PrefabInstance:
     - target: {fileID: 6696801327567895208, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: type
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6878337369081552165, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Radius
+      value: 0.1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6696801327567895208, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}

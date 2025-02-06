@@ -5,6 +5,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2197099266743200865, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
@@ -60,9 +61,21 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Size.x
+      value: 3.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_Size.y
+      value: 3.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 8d4a2ded892e27742bb6d4d263639dff, type: 3}
+      objectReference: {fileID: -6717884257390833292, guid: fe6a32c5d0a481348a28f8208f455422, type: 3}
+    - target: {fileID: 3200942340189200094, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3671088032826532078, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
       propertyPath: m_Name
       value: Shield
@@ -73,6 +86,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6696801327567895208, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3671088032826532078, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8259187759274897502}
   m_SourcePrefab: {fileID: 100100000, guid: 848c29a7ce62881439a363a1787aa93a, type: 3}
 --- !u!1 &1429281836609568232 stripped
 GameObject:

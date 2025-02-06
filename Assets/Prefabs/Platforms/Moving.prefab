@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 387746044590215019, guid: 0582e86acf45ed442a9884c4d33f7475, type: 3}
       propertyPath: m_SurfaceArc
-      value: 160
+      value: 177.56
       objectReference: {fileID: 0}
     - target: {fileID: 1531932188871459716, guid: 0582e86acf45ed442a9884c4d33f7475, type: 3}
       propertyPath: m_Sprite

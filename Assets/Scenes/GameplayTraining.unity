@@ -349,7 +349,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Managers
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4642574340037275363, guid: 081be0c1935f5f14aa891a18eb92c856, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -462,7 +463,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -550,12 +551,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
       propertyPath: speed
-      value: 20
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
+      propertyPath: jumpForce
+      value: 7.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
+      propertyPath: moveSpeed
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
       propertyPath: shieldVisual
       value: 
       objectReference: {fileID: 870566667}
+    - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
+      propertyPath: comboHeightThreshold
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1536254365189497642, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
     m_RemovedGameObjects: []
@@ -853,9 +866,9 @@ MonoBehaviour:
   disappearingPlatform:
     name: Disappearing
     prefab: {fileID: 8987556480882527669, guid: c6c6d3d4327763d4eb15f0741bfe0f6d, type: 3}
-    baseWeight: 60
-    minWeight: 25
-    maxWeight: 75
+    baseWeight: 30
+    minWeight: 12.5
+    maxWeight: 37.5
     difficultyCurve:
       serializedVersion: 2
       m_Curve:
@@ -1009,15 +1022,15 @@ MonoBehaviour:
   basicEnemy:
     name: BasicEnemy
     prefab: {fileID: 5871468847505239562, guid: 8e74d492fa7736d4eb1a4087a8a88c38, type: 3}
-    baseWeight: 3
+    baseWeight: 5
     minWeight: 1
-    maxWeight: 5
+    maxWeight: 10
     difficultyCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.3
+        value: 0.4
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1049,8 +1062,8 @@ MonoBehaviour:
     name: MovingEnemy
     prefab: {fileID: 5871468847505239562, guid: 5ab87e68154bda34cae926479700c616, type: 3}
     baseWeight: 2
-    minWeight: 0.5
-    maxWeight: 4
+    minWeight: 1
+    maxWeight: 3
     difficultyCurve:
       serializedVersion: 2
       m_Curve:
@@ -1087,9 +1100,9 @@ MonoBehaviour:
   shootingEnemy:
     name: ShootingEnemy
     prefab: {fileID: 5871468847505239562, guid: d50f78597018a7b438f5c01e61980abc, type: 3}
-    baseWeight: 1
+    baseWeight: 0.5
     minWeight: 0.2
-    maxWeight: 3
+    maxWeight: 1
     difficultyCurve:
       serializedVersion: 2
       m_Curve:
@@ -1124,8 +1137,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   basePlatformWeight: 100
-  basePowerUpWeight: 5
-  baseEnemyWeight: 3
+  basePowerUpWeight: 7
+  baseEnemyWeight: 10
   maxDifficulty: 10
   powerUpScaling:
     serializedVersion: 2
@@ -1133,15 +1146,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 1
-      inSlope: -0.39999998
-      outSlope: -0.39999998
+      inSlope: -0.33995828
+      outSlope: -0.33995828
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.5
-      value: 0.8
+      time: 0.46110535
+      value: 0.8432434
       inSlope: -0.73243475
       outSlope: -0.73243475
       tangentMode: 0
@@ -1149,10 +1162,10 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.48844862
     - serializedVersion: 3
-      time: 1
-      value: 0.5
-      inSlope: -0.6
-      outSlope: -0.6
+      time: 0.9833374
+      value: 0.6871033
+      inSlope: -0.29898614
+      outSlope: -0.29898614
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -1165,18 +1178,18 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.5
-      inSlope: 0.39999998
-      outSlope: 0.39999998
+      value: 0.6
+      inSlope: 1.1073382
+      outSlope: 1.1073382
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.5
-      value: 0.7
-      inSlope: 0.5
-      outSlope: 0.5
+      time: 0.17778015
+      value: 0.7968628
+      inSlope: 0.6771988
+      outSlope: 0.6771988
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -1184,8 +1197,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0.6
-      outSlope: 0.6
+      inSlope: 0.2470595
+      outSlope: 0.2470595
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -1208,9 +1221,9 @@ MonoBehaviour:
   weightManager: {fileID: 914625164}
   minX: -5
   maxX: 5
-  verticalSpawnDistance: 2
+  verticalSpawnDistance: 2.5
   maxHorizontalGap: 2
-  destroyBelowY: -14
+  destroyBelowY: -20
   spawnAboveY: 4
   platformDensityMultiplier: 2
 --- !u!114 &914625166
@@ -1357,7 +1370,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -1614,7 +1627,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -1801,7 +1814,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -2071,8 +2084,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1.1583252, y: 0}
+  m_SizeDelta: {x: 37.891, y: 26.6816}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1503062736
 MonoBehaviour:
@@ -2163,8 +2176,8 @@ MonoBehaviour:
     spawnChance: 7
   - prefab: {fileID: 8987556480882527669, guid: c6c6d3d4327763d4eb15f0741bfe0f6d, type: 3}
     spawnChance: 3
-  platformsToSpawn: 20
-  platformSpawnDistanceY: 3
+  platformsToSpawn: 15
+  platformSpawnDistanceY: 1.5
   minX: -2.7
   maxX: 2.7
   lastPlatformPosition: {x: 0, y: 0, z: 0}
@@ -2548,7 +2561,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
