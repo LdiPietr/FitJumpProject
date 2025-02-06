@@ -6,8 +6,8 @@ public class SpawnManager : MonoBehaviour
     public SpawnWeightManager weightManager;
     public float minX = -5f;
     public float maxX = 5f;
-    public float verticalSpawnDistance = 1.2f; // Ridotto per aumentare densità
-    public float maxHorizontalGap = 1.8f; // Massima distanza orizzontale tra piattaforme
+    public float verticalSpawnDistance = 1.2f;
+    public float maxHorizontalGap = 1.8f;
     private Vector2 lastPlatformPosition;
     public float destroyBelowY = -14f;
     public float spawnAboveY = 4f;
@@ -17,11 +17,19 @@ public class SpawnManager : MonoBehaviour
     private float lastSpawnY;
     private Camera mainCamera;
 
+    private Platform.PlatformType lastPlatformType = Platform.PlatformType.Normal;
+    private GameObject lastPowerUpSpawned;
+
     private void Start()
     {
         mainCamera = Camera.main;
 
-        // Prima piattaforma e player
+        float screenWidthInWorldUnits = mainCamera.ScreenToWorldPoint(new Vector3(Screen.width, 0, 0)).x -
+                                        mainCamera.ScreenToWorldPoint(Vector3.zero).x;
+
+        minX = -screenWidthInWorldUnits / 2 + 1f;
+        maxX = screenWidthInWorldUnits / 2 - 1f;
+
         Vector3 startPlatformPosition = new Vector3(0, -3, 0);
         GameObject firstPlatform =
             Instantiate(weightManager.normalPlatform.prefab, startPlatformPosition, Quaternion.identity);
@@ -31,7 +39,6 @@ public class SpawnManager : MonoBehaviour
 
         lastSpawnY = startPlatformPosition.y;
 
-        // Piattaforme iniziali
         float currentY = lastSpawnY;
         for (int i = 0; i < 15; i++)
         {
@@ -48,7 +55,6 @@ public class SpawnManager : MonoBehaviour
     {
         float cameraY = mainCamera.transform.position.y;
 
-        // Spawn nuove piattaforme
         while (lastSpawnY < cameraY + spawnAboveY)
         {
             for (int i = 0; i < platformDensityMultiplier; i++)
@@ -57,8 +63,6 @@ public class SpawnManager : MonoBehaviour
             }
         }
 
-
-        // Cleanup più aggressivo delle piattaforme
         for (int i = activePlatforms.Count - 1; i >= 0; i--)
         {
             if (!activePlatforms[i] || activePlatforms[i].transform.position.y < cameraY + destroyBelowY)
@@ -72,15 +76,12 @@ public class SpawnManager : MonoBehaviour
 
     private void SpawnPlatform()
     {
-        // Calcola i limiti dello schermo
         float cameraHeight = mainCamera.orthographicSize * 2;
         float cameraWidth = cameraHeight * mainCamera.aspect;
-    
-        // Usa questi limiti per lo spawn
-        float screenMinX = -cameraWidth/2 + 1f; // +1 per margine
-        float screenMaxX = cameraWidth/2 - 1f;  // -1 per margine
 
-        // Calcola posizione di spawn
+        float screenMinX = -cameraWidth / 2 + 1f;
+        float screenMaxX = cameraWidth / 2 - 1f;
+
         float newX;
         if (activePlatforms.Count > 0)
         {
@@ -96,7 +97,6 @@ public class SpawnManager : MonoBehaviour
         Vector2 spawnPosition = new Vector2(newX, lastSpawnY + verticalSpawnDistance);
         lastPlatformPosition = spawnPosition;
 
-        // Calcola i pesi totali per le piattaforme
         float totalWeight =
             weightManager.GetSpecificWeight(weightManager.normalPlatform) +
             weightManager.GetSpecificWeight(weightManager.movingPlatform) +
@@ -107,31 +107,50 @@ public class SpawnManager : MonoBehaviour
         float currentWeight = 0;
 
         GameObject platformToSpawn = weightManager.normalPlatform.prefab;
+        Platform.PlatformType platformTypeToSpawn = Platform.PlatformType.Normal;
 
         currentWeight += weightManager.GetSpecificWeight(weightManager.normalPlatform);
         if (randomWeight > currentWeight)
         {
             currentWeight += weightManager.GetSpecificWeight(weightManager.movingPlatform);
             if (randomWeight <= currentWeight)
+            {
                 platformToSpawn = weightManager.movingPlatform.prefab;
+                platformTypeToSpawn = Platform.PlatformType.Moving;
+            }
             else
             {
                 currentWeight += weightManager.GetSpecificWeight(weightManager.breakablePlatform);
                 if (randomWeight <= currentWeight)
+                {
                     platformToSpawn = weightManager.breakablePlatform.prefab;
+                    platformTypeToSpawn = Platform.PlatformType.Breakable;
+                }
                 else
+                {
                     platformToSpawn = weightManager.disappearingPlatform.prefab;
+                    platformTypeToSpawn = Platform.PlatformType.Disappearing;
+                }
             }
         }
 
+        // Evita di spawnare due piattaforme "Disappearing" di seguito
+        if (platformTypeToSpawn == Platform.PlatformType.Disappearing &&
+            lastPlatformType == Platform.PlatformType.Disappearing)
+        {
+            // Riprova a generare una piattaforma diversa
+            SpawnPlatform();
+            return;
+        }
+
         GameObject platform = Instantiate(platformToSpawn, spawnPosition, Quaternion.identity);
+        Platform platformComponent = platform.GetComponent<Platform>();
+
         activePlatforms.Add(platform);
         lastSpawnY = spawnPosition.y;
-
-        // Chance di spawn power-up o nemico
+        lastPlatformType = platformTypeToSpawn;
         TrySpawnExtra(spawnPosition);
     }
-
 
     private void TrySpawnExtra(Vector2 platformPosition)
     {
@@ -156,20 +175,29 @@ public class SpawnManager : MonoBehaviour
             weightManager.GetSpecificWeight(weightManager.shieldPowerUp) +
             weightManager.GetSpecificWeight(weightManager.springPowerUp);
 
-        float randomWeight = Random.Range(0f, totalWeight);
-        float currentWeight = 0;
+        float randomWeight;
+        float currentWeight;
+        GameObject powerUpToSpawn;
 
-        GameObject powerUpToSpawn = weightManager.jetpackPowerUp.prefab;
-
-        currentWeight += weightManager.GetSpecificWeight(weightManager.jetpackPowerUp);
-        if (randomWeight > currentWeight)
+        do
         {
-            currentWeight += weightManager.GetSpecificWeight(weightManager.shieldPowerUp);
-            if (randomWeight <= currentWeight)
-                powerUpToSpawn = weightManager.shieldPowerUp.prefab;
-            else
-                powerUpToSpawn = weightManager.springPowerUp.prefab;
-        }
+            randomWeight = Random.Range(0f, totalWeight);
+            currentWeight = 0;
+
+            powerUpToSpawn = weightManager.jetpackPowerUp.prefab;
+
+            currentWeight += weightManager.GetSpecificWeight(weightManager.jetpackPowerUp);
+            if (randomWeight > currentWeight)
+            {
+                currentWeight += weightManager.GetSpecificWeight(weightManager.shieldPowerUp);
+                if (randomWeight <= currentWeight)
+                    powerUpToSpawn = weightManager.shieldPowerUp.prefab;
+                else
+                    powerUpToSpawn = weightManager.springPowerUp.prefab;
+            }
+        } while (powerUpToSpawn == lastPowerUpSpawned);
+
+        lastPowerUpSpawned = powerUpToSpawn; // Aggiorna l'ultimo power-up generato
 
         Instantiate(powerUpToSpawn, position + Vector2.up, Quaternion.identity);
     }

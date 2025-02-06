@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Platform : MonoBehaviour
@@ -17,6 +18,7 @@ public class Platform : MonoBehaviour
     {
         if (!isActive) return;
 
+
         if (collision.gameObject.CompareTag("Player"))
         {
             Rigidbody2D playerRb = collision.gameObject.GetComponent<Rigidbody2D>();
@@ -26,6 +28,7 @@ public class Platform : MonoBehaviour
             }
         }
     }
+
 
     protected virtual void OnPlayerLand()
     {

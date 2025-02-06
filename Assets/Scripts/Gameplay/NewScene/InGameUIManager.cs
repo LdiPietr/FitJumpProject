@@ -11,7 +11,7 @@ public class InGameUIManager : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = FindObjectOfType<InGameUIManager>();
+                _instance = Object.FindFirstObjectByType<InGameUIManager>();
             }
             return _instance;
         }

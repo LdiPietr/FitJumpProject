@@ -3,23 +3,9 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
-    public float moveSpeed = 5f;
+    public float moveSpeed = 10f;
     public float jumpForce = 10f;
-    
-    public enum TouchPhase
-    {
-        Start,
-        Stop
-    }
 
-    public TouchPhase touchPhase = TouchPhase.Stop;
-
-    public float speed = 19.5f;
-    public float lastPosition = 0.0f;
-    public float tolerance = 0.1f;
-    public float moveInput;
-
-    
     // Power-up properties
     private bool hasShield;
     private bool hasJetpack;
@@ -30,7 +16,7 @@ public class PlayerController : MonoBehaviour
     // Components
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
-    
+
     private float highestY;
     private float lastComboHeight;
     public float comboHeightThreshold = 5f;
@@ -38,16 +24,21 @@ public class PlayerController : MonoBehaviour
     // Shield visual
     public GameObject shieldVisual;
 
+    private float screenHalfWidthInWorldUnits;
+
     private void Awake()
     {
         Instance = this;
     }
-    
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        //shieldVisual.SetActive(false);
+
+        // Calcola la metà della larghezza dello schermo in unità del mondo
+        float halfPlayerWidth = transform.localScale.x / 2f;
+        screenHalfWidthInWorldUnits = Camera.main.aspect * Camera.main.orthographicSize - halfPlayerWidth;
     }
 
     private void Update()
@@ -55,21 +46,22 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandlePowerUps();
         CheckScreenWrap();
+
         if (transform.position.y > highestY)
         {
             float heightDifference = transform.position.y - highestY;
             GameplayManager.Instance.AddScore(Mathf.RoundToInt(heightDifference * 10));
-        
+
             // Aumenta difficoltà in base all'altezza
             GameplayManager.Instance.difficulty = highestY / 50f; // Ogni 50 unità = +1 difficoltà
-        
+
             // Gestione combo
             if (transform.position.y - lastComboHeight >= comboHeightThreshold)
             {
                 GameplayManager.Instance.IncreaseCombo();
                 lastComboHeight = transform.position.y;
             }
-        
+
             highestY = transform.position.y;
         }
         else if (transform.position.y < lastComboHeight - comboHeightThreshold)
@@ -88,48 +80,24 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (Input.GetMouseButton(0))
-        {
-            if (touchPhase == TouchPhase.Stop)
-            {
-                touchPhase = TouchPhase.Start;
-                lastPosition = Input.mousePosition.x;
-            }
-            else
-            {
-                var delta = Input.mousePosition.x - lastPosition;
-                if (Mathf.Abs(delta) > tolerance)
-                {
-                    var screen = Screen.width * 0.00001f;
-                    moveInput = delta;
-                    lastPosition = Input.mousePosition.x;
-                    
-                    // Calcola la posizione target
-                    float targetX = transform.position.x + moveInput * screen * speed;
-                    
-                    // Interpola in modo fluido verso la posizione target
-                    float smoothX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * moveSpeed);
-                    
-                    transform.position = new Vector3(smoothX, transform.position.y, transform.position.z);
-                }
-                else
-                {
-                    moveInput = 0.0f;
-                }
-            }
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            touchPhase = TouchPhase.Stop;
-            moveInput = 0.0f;
-        }
-    
+        // Ottieni l'input dell'accelerometro
+        Vector3 acceleration = Input.acceleration;
+
+        // Calcola il movimento basato sull'inclinazione del dispositivo
+        float movement = acceleration.x * moveSpeed * Time.deltaTime;
+
+        // Muovi il giocatore in base all'inclinazione
+        transform.Translate(Vector2.right * movement);
+
+        // Limita il movimento del giocatore ai bordi dello schermo
+        float clampedX = Mathf.Clamp(transform.position.x, -screenHalfWidthInWorldUnits, screenHalfWidthInWorldUnits);
+        transform.position = new Vector3(clampedX, transform.position.y, transform.position.z);
+
         if (hasJetpack)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jetpackForce);
         }
     }
-
 
     private void HandlePowerUps()
     {
@@ -152,11 +120,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     private void CheckScreenWrap()
     {
         Vector2 screenBounds = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
-        
+
         if (transform.position.x > screenBounds.x)
         {
             transform.position = new Vector3(-screenBounds.x, transform.position.y, 0);
@@ -227,5 +194,4 @@ public class PlayerController : MonoBehaviour
             Destroy(other.gameObject);
         }
     }
-
 }
