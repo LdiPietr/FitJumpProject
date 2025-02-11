@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 17.83736, y: 46.32605, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -168,5 +168,7 @@ MonoBehaviour:
   type: 0
   damage: 1
   scoreValue: 100
-  moveSpeed: 3
-  moveDistance: 3
+  minMoveSpeed: 2
+  maxMoveSpeed: 5
+  minMoveDistance: 2
+  maxMoveDistance: 5

@@ -555,11 +555,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
       propertyPath: jumpForce
-      value: 7.5
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
       propertyPath: moveSpeed
-      value: 15
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 7381941602476918479, guid: 79de2a1e2f808a842ad2df4fe4ab0104, type: 3}
       propertyPath: shieldVisual
@@ -1219,13 +1219,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weightManager: {fileID: 914625164}
-  minX: -5
-  maxX: 5
-  verticalSpawnDistance: 2.5
+  initialVerticalSpawnDistance: 0.8
+  maxVerticalSpawnDistance: 1
   maxHorizontalGap: 2
   destroyBelowY: -20
   spawnAboveY: 4
-  platformDensityMultiplier: 2
+  platformDensityMultiplier: 100
+  activePlatforms: []
 --- !u!114 &914625166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1696,7 +1696,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.008051336, y: -0.048308074}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -1706,7 +1706,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.7, y: 0.7}
+  m_Size: {x: 0.5513654, y: 0.7966162}
   m_EdgeRadius: 0
 --- !u!1 &1322018766
 GameObject:
@@ -2164,7 +2164,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1600506455}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ccd45cb07e7986043b44d4bff514175f, type: 3}
   m_Name: 
@@ -2176,8 +2176,8 @@ MonoBehaviour:
     spawnChance: 7
   - prefab: {fileID: 8987556480882527669, guid: c6c6d3d4327763d4eb15f0741bfe0f6d, type: 3}
     spawnChance: 3
-  platformsToSpawn: 15
-  platformSpawnDistanceY: 1.5
+  platformsToSpawn: 150
+  platformSpawnDistanceY: 1
   minX: -2.7
   maxX: 2.7
   lastPlatformPosition: {x: 0, y: 0, z: 0}

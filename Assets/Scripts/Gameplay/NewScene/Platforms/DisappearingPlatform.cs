@@ -3,7 +3,9 @@ using System.Collections;
 
 public class DisappearingPlatform : Platform
 {
-    public float minVisibleDuration = 1f;
+    public float boostForce = 18f;
+    public float duration = 0.5f;
+    /*public float minVisibleDuration = 1f;
     public float maxVisibleDuration = 3f;
     public float minInvisibleDuration = 0.5f;
     public float maxInvisibleDuration = 1.5f;
@@ -13,22 +15,37 @@ public class DisappearingPlatform : Platform
 
     private SpriteRenderer spriteRenderer;
     private BoxCollider2D boxCollider;
-    private bool isVisible = true;
+    private bool isVisible = true;*/
 
     private void Start()
     {
         type = PlatformType.Disappearing;
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        /*spriteRenderer = GetComponent<SpriteRenderer>();
         boxCollider = GetComponent<BoxCollider2D>();
 
         // Assegna durate casuali all'interno degli intervalli
         visibleDuration = Random.Range(minVisibleDuration, maxVisibleDuration);
         invisibleDuration = Random.Range(minInvisibleDuration, maxInvisibleDuration);
 
-        StartCoroutine(CycleVisibility());
+        StartCoroutine(CycleVisibility());*/
     }
 
-    private IEnumerator CycleVisibility()
+    protected override void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!isActive) return;
+
+
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody2D playerRb = collision.gameObject.GetComponent<Rigidbody2D>();
+            if (playerRb.linearVelocity.y <= 0)
+            {
+                playerRb.linearVelocity = new Vector2(playerRb.linearVelocity.x, boostForce);
+            }
+        }
+    }
+
+    /*private IEnumerator CycleVisibility()
     {
         while (true)
         {
@@ -55,5 +72,5 @@ public class DisappearingPlatform : Platform
         Color color = spriteRenderer.color;
         color.a = alpha;
         spriteRenderer.color = color;
-    }
+    }*/
 }

@@ -1,19 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.InputSystem.iOS;
 
 public class SpawnManager : MonoBehaviour
 {
     public SpawnWeightManager weightManager;
-    public float minX = -5f;
-    public float maxX = 5f;
-    public float verticalSpawnDistance = 1.2f;
+    public float initialVerticalSpawnDistance = 0.8f;
+    public float maxVerticalSpawnDistance = 10.0f;
     public float maxHorizontalGap = 1.8f;
     private Vector2 lastPlatformPosition;
     public float destroyBelowY = -14f;
     public float spawnAboveY = 4f;
-    public float platformDensityMultiplier = 2f;
+    public float platformDensityMultiplier = 100;
 
-    private List<GameObject> activePlatforms = new List<GameObject>();
+    public List<GameObject> activePlatforms = new List<GameObject>();
     private float lastSpawnY;
     private Camera mainCamera;
 
@@ -23,12 +23,6 @@ public class SpawnManager : MonoBehaviour
     private void Start()
     {
         mainCamera = Camera.main;
-
-        float screenWidthInWorldUnits = mainCamera.ScreenToWorldPoint(new Vector3(Screen.width, 0, 0)).x -
-                                        mainCamera.ScreenToWorldPoint(Vector3.zero).x;
-
-        minX = -screenWidthInWorldUnits / 2 + 1f;
-        maxX = screenWidthInWorldUnits / 2 - 1f;
 
         Vector3 startPlatformPosition = new Vector3(0, -3, 0);
         GameObject firstPlatform =
@@ -40,12 +34,9 @@ public class SpawnManager : MonoBehaviour
         lastSpawnY = startPlatformPosition.y;
 
         float currentY = lastSpawnY;
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < 30; i++)
         {
-            currentY += verticalSpawnDistance;
-            Vector2 spawnPosition = new Vector2(Random.Range(minX, maxX), currentY);
-            GameObject platform = Instantiate(weightManager.normalPlatform.prefab, spawnPosition, Quaternion.identity);
-            activePlatforms.Add(platform);
+            SpawnPlatform();
         }
 
         lastSpawnY = currentY;
@@ -82,17 +73,23 @@ public class SpawnManager : MonoBehaviour
         float screenMinX = -cameraWidth / 2 + 1f;
         float screenMaxX = cameraWidth / 2 - 1f;
 
+        // Calcola il gap orizzontale in base all'altezza
+        float currentMaxHorizontalGap = CalculateHorizontalGap(mainCamera.transform.position.y);
+
         float newX;
         if (activePlatforms.Count > 0)
         {
-            float minX = Mathf.Max(lastPlatformPosition.x - maxHorizontalGap, screenMinX);
-            float maxX = Mathf.Min(lastPlatformPosition.x + maxHorizontalGap, screenMaxX);
+            float minX = Mathf.Max(lastPlatformPosition.x - currentMaxHorizontalGap, screenMinX);
+            float maxX = Mathf.Min(lastPlatformPosition.x + currentMaxHorizontalGap, screenMaxX);
             newX = Random.Range(minX, maxX);
         }
         else
         {
             newX = Random.Range(screenMinX, screenMaxX);
         }
+
+        float verticalSpawnDistance = Mathf.Lerp(initialVerticalSpawnDistance, maxVerticalSpawnDistance,
+            Mathf.Pow(lastSpawnY / 100f, 4));
 
         Vector2 spawnPosition = new Vector2(newX, lastSpawnY + verticalSpawnDistance);
         lastPlatformPosition = spawnPosition;
@@ -108,7 +105,6 @@ public class SpawnManager : MonoBehaviour
 
         GameObject platformToSpawn = weightManager.normalPlatform.prefab;
         Platform.PlatformType platformTypeToSpawn = Platform.PlatformType.Normal;
-
         currentWeight += weightManager.GetSpecificWeight(weightManager.normalPlatform);
         if (randomWeight > currentWeight)
         {
@@ -143,13 +139,20 @@ public class SpawnManager : MonoBehaviour
             return;
         }
 
-        GameObject platform = Instantiate(platformToSpawn, spawnPosition, Quaternion.identity);
-        Platform platformComponent = platform.GetComponent<Platform>();
-
-        activePlatforms.Add(platform);
+        SpawnRoutine(spawnPosition, platformToSpawn);
         lastSpawnY = spawnPosition.y;
         lastPlatformType = platformTypeToSpawn;
-        TrySpawnExtra(spawnPosition);
+    }
+
+    // Funzione per calcolare il gap orizzontale
+    private float CalculateHorizontalGap(float currentY)
+    {
+        float minGap = 0.3f; // Gap minimo desiderato
+        float maxGap = maxHorizontalGap; // Gap massimo originale
+        float normalizedHeight = Mathf.Clamp01(currentY / 100f); // Normalizza l'altezza
+
+        // Calcola il gap attuale
+        return Mathf.Lerp(minGap, maxGap, normalizedHeight);
     }
 
     private void TrySpawnExtra(Vector2 platformPosition)
@@ -224,6 +227,41 @@ public class SpawnManager : MonoBehaviour
                 enemyToSpawn = weightManager.shootingEnemy.prefab;
         }
 
-        Instantiate(enemyToSpawn, position + Vector2.up, Quaternion.identity);
+        var positionToSpawn = position + Vector2.up;
+        var spawned = Instantiate(enemyToSpawn, positionToSpawn, Quaternion.identity);
+        foreach (var platform in activePlatforms)
+        {
+            float platformX = platform.transform.position.x;
+            float platformY = platform.transform.position.y;
+
+            if (Mathf.Abs(platformY) - Mathf.Abs(positionToSpawn.y) < 0.5f &&
+                Mathf.Abs(positionToSpawn.x) - Mathf.Abs(platformX) < 2)
+            {
+                var vector3 = spawned.transform.position;
+                vector3.x = vector3.x > 2 ? (vector3.x - 3) : (vector3.x + 3);
+                spawned.transform.position = vector3;
+                break;
+            }
+        }
+    }
+
+    private void SpawnRoutine(Vector2 positionToSpawn, GameObject objectToSpawn)
+    {
+        foreach (var platform in activePlatforms)
+        {
+            float platformX = platform.transform.position.x;
+            float platformY = platform.transform.position.y;
+
+            if (Mathf.Abs(platformY - positionToSpawn.y) < 1f &&
+                Mathf.Abs(positionToSpawn.x - platformX) < GameplayManager.Instance.comboMultiplier * 0.2f)
+            {
+                print(Mathf.Abs(platformY - positionToSpawn.y) + "   " +
+                      Mathf.Abs(positionToSpawn.x - platformX));
+                return;
+            }
+        }
+
+        var spawned = Instantiate(objectToSpawn, positionToSpawn, Quaternion.identity);
+        activePlatforms.Add(spawned);
     }
 }

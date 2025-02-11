@@ -162,7 +162,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 3
-  minVisibleDuration: 2
-  maxVisibleDuration: 5
-  minInvisibleDuration: 0.5
-  maxInvisibleDuration: 1
+  boostForce: 10
+  duration: 0.25
