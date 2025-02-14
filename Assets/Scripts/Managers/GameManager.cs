@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame(bool tournamentMode)
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         score = 0;
         isTournamentMode = tournamentMode;
         SceneManager.LoadScene(tournamentMode ? "GameplayTournament" : "GameplayTraining");

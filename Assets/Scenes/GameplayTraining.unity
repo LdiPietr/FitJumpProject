@@ -145,8 +145,8 @@ Transform:
   m_GameObject: {fileID: 42458139}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.0022, y: -0.0192, z: 10}
-  m_LocalScale: {x: 1.1991583, y: 1.4216733, z: 1}
+  m_LocalPosition: {x: -0.38, y: -0.0192, z: 10}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2139813186}
@@ -1099,7 +1099,7 @@ MonoBehaviour:
       m_RotationOrder: 4
   shootingEnemy:
     name: ShootingEnemy
-    prefab: {fileID: 5871468847505239562, guid: d50f78597018a7b438f5c01e61980abc, type: 3}
+    prefab: {fileID: 5871468847505239562, guid: 5ab87e68154bda34cae926479700c616, type: 3}
     baseWeight: 0.5
     minWeight: 0.2
     maxWeight: 1
@@ -1219,13 +1219,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weightManager: {fileID: 914625164}
-  initialVerticalSpawnDistance: 0.8
-  maxVerticalSpawnDistance: 1
-  maxHorizontalGap: 2
-  destroyBelowY: -20
-  spawnAboveY: 4
-  platformDensityMultiplier: 100
+  minGapY: 1
+  maxGapY: 0.5
+  minGapX: 1.3
+  limitGapY: 3.5
+  screenMinX: 0
+  screenMaxX: 0
   activePlatforms: []
+  numberOfPlatformsToSpawn: 100
+  destroyBelowY: -20
 --- !u!114 &914625166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,62 +2127,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1503062734}
   m_CullTransparentMesh: 1
---- !u!1 &1600506455
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1600506457}
-  - component: {fileID: 1600506458}
-  m_Layer: 0
-  m_Name: PlatformGenerator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1600506457
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1600506455}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -7, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1600506458
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1600506455}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ccd45cb07e7986043b44d4bff514175f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  platformSpawnData:
-  - prefab: {fileID: 8987556480882527669, guid: 8e26e68e4b585f0489ee47327b741ab8, type: 3}
-    spawnChance: 90
-  - prefab: {fileID: 8987556480882527669, guid: a0b51412155abcd48b9634135666d765, type: 3}
-    spawnChance: 7
-  - prefab: {fileID: 8987556480882527669, guid: c6c6d3d4327763d4eb15f0741bfe0f6d, type: 3}
-    spawnChance: 3
-  platformsToSpawn: 150
-  platformSpawnDistanceY: 1
-  minX: -2.7
-  maxX: 2.7
-  lastPlatformPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1768991000
 GameObject:
   m_ObjectHideFlags: 0
@@ -2946,7 +2892,6 @@ SceneRoots:
   - {fileID: 1409510552}
   - {fileID: 424928345}
   - {fileID: 2118369725}
-  - {fileID: 1600506457}
   - {fileID: 8170239588387440027}
   - {fileID: 914625162}
   - {fileID: 559630347}
