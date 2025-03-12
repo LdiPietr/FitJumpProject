@@ -1,21 +1,23 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
+    public Sprite[] sprites;
+    public SpriteRenderer spriteRenderer;
     public float moveSpeed = 10f;
     public float jumpForce = 10f;
 
     // Power-up properties
     private bool hasShield;
     private bool hasJetpack;
-    private float shieldTimer;
+    public float shieldTimer;
     private float jetpackTimer;
     private float jetpackForce;
 
     // Components
     private Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
 
     private float highestY;
     private float lastComboHeight;
@@ -23,6 +25,7 @@ public class PlayerController : MonoBehaviour
 
     // Shield visual
     public GameObject shieldVisual;
+    public GameObject jetpackVisual;
 
     private float screenHalfWidthInWorldUnits;
 
@@ -53,7 +56,7 @@ public class PlayerController : MonoBehaviour
             GameplayManager.Instance.AddScore(Mathf.RoundToInt(heightDifference * 10));
 
             // Aumenta difficoltà in base all'altezza
-            GameplayManager.Instance.difficulty = highestY / 50f; // Ogni 50 unità = +1 difficoltà
+            GameplayManager.Instance.difficulty = highestY / 50f;
 
             // Gestione combo
             if (transform.position.y - lastComboHeight >= comboHeightThreshold)
@@ -76,6 +79,8 @@ public class PlayerController : MonoBehaviour
             GameplayManager.Instance.GameOver();
             gameObject.SetActive(false);
         }
+
+        spriteRenderer.sprite = rb.linearVelocity.y < -0.5f ? sprites[3] : sprites[0];
     }
 
     private void HandleMovement()
@@ -139,6 +144,7 @@ public class PlayerController : MonoBehaviour
         hasShield = true;
         shieldTimer = duration;
         shieldVisual.SetActive(true);
+        StartCoroutine(shieldVisual.GetComponent<VisualShield>().UpdateShield());
     }
 
     public void ActivateJetpack(float duration, float force)
@@ -146,6 +152,7 @@ public class PlayerController : MonoBehaviour
         hasJetpack = true;
         jetpackTimer = duration;
         jetpackForce = force;
+        jetpackVisual.SetActive(true);
     }
 
     public bool HasShield()
@@ -162,6 +169,7 @@ public class PlayerController : MonoBehaviour
     private void DeactivateJetpack()
     {
         hasJetpack = false;
+        jetpackVisual.SetActive(false);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

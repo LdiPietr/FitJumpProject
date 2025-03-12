@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class InGameUIManager : MonoBehaviour
 {
     private static InGameUIManager _instance;
+
     public static InGameUIManager Instance
     {
         get
@@ -13,20 +14,19 @@ public class InGameUIManager : MonoBehaviour
             {
                 _instance = Object.FindFirstObjectByType<InGameUIManager>();
             }
+
             return _instance;
         }
     }
 
-    [Header("UI Elements")]
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI comboText;
+    [Header("UI Elements")] public TextMeshProUGUI scoreText;
+    public string comboText;
     public TextMeshProUGUI highScoreText;
     public GameObject gameOverPanel;
     public TextMeshProUGUI finalScoreText;
     public TextMeshProUGUI bestComboText;
-    
-    [Header("Power-up UI")]
-    public Image shieldTimer;
+
+    [Header("Power-up UI")] public Image shieldTimer;
     public Image jetpackTimer;
     public GameObject powerUpPanel;
 
@@ -47,19 +47,20 @@ public class InGameUIManager : MonoBehaviour
         UpdateComboText();
         gameOverPanel.SetActive(false);
         //powerUpPanel.SetActive(false);
-       // shieldTimer.fillAmount = 0;
-       // jetpackTimer.fillAmount = 0;
+        // shieldTimer.fillAmount = 0;
+        // jetpackTimer.fillAmount = 0;
     }
 
     public void UpdateScoreText()
     {
-        scoreText.text = $"Score: {Mathf.FloorToInt(GameplayManager.Instance.score)}";
         UpdateComboText();
+        scoreText.text = $"{Mathf.FloorToInt(GameplayManager.Instance.score):D8}" + comboText;
     }
 
     public void UpdateComboText()
     {
-        comboText.text = $"Combo: x{GameplayManager.Instance.comboMultiplier:F1}";
+        comboText = $" (x{GameplayManager.Instance.comboMultiplier:0.0})";
+        scoreText.text = $" {Mathf.FloorToInt(GameplayManager.Instance.score):D8}" + comboText;
     }
 
     public void UpdatePowerUpTimer(string powerUpType, float remainingTime, float totalTime)
@@ -86,13 +87,13 @@ public class InGameUIManager : MonoBehaviour
     {
         int currentScore = Mathf.FloorToInt(GameplayManager.Instance.score);
         int highScore = PlayerPrefs.GetInt("HighScore", 0);
-        
+
         if (currentScore > highScore)
         {
             PlayerPrefs.SetInt("HighScore", currentScore);
             PlayerPrefs.Save();
         }
-        
+
         highScoreText.text = $"High Score: {PlayerPrefs.GetInt("HighScore")}";
     }
 
