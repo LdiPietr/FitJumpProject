@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -5,6 +7,10 @@ using UnityEngine.UI;
 public class InGameUIManager : MonoBehaviour
 {
     private static InGameUIManager _instance;
+    
+    [Header("Countdown")]
+    public GameObject countdownPanel;
+    public TextMeshProUGUI countdownText;
 
     public static InGameUIManager Instance
     {
@@ -33,7 +39,6 @@ public class InGameUIManager : MonoBehaviour
     private void Awake()
     {
         _instance = this;
-        Debug.Log("InGameUIManager initialized");
     }
 
     private void Start()
@@ -46,9 +51,76 @@ public class InGameUIManager : MonoBehaviour
         UpdateScoreText();
         UpdateComboText();
         gameOverPanel.SetActive(false);
-        //powerUpPanel.SetActive(false);
-        // shieldTimer.fillAmount = 0;
-        // jetpackTimer.fillAmount = 0;
+     
+    }
+    
+    public void ShowCountdown(float duration)
+    {
+        if (countdownPanel)
+        {
+            countdownPanel.SetActive(true);
+            StartCoroutine(UpdateCountdownText(duration));
+        }
+    }
+    
+    private IEnumerator UpdateCountdownText(float duration)
+    {
+        int count = Mathf.CeilToInt(duration);
+        
+        while (count > 0)
+        {
+            countdownText.text = count.ToString();
+            
+            // Effetto di animazione del testo (opzionale)
+            countdownText.transform.localScale = Vector3.one * 1.5f;
+            float elapsedTime = 0;
+            float scaleDuration = 0.5f;
+            
+            while (elapsedTime < scaleDuration)
+            {
+                float t = elapsedTime / scaleDuration;
+                countdownText.transform.localScale = Vector3.Lerp(Vector3.one * 1.5f, Vector3.one, t);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            
+            count--;
+            yield return new WaitForSeconds(0.5f); // Attendi il resto del secondo
+        }
+        
+        // Mostra "GO!" alla fine del countdown
+        countdownText.text = "GO!";
+        countdownText.transform.localScale = Vector3.one * 1.3f;
+        
+        // Fai scomparire gradualmente "GO!"
+        yield return new WaitForSeconds(0.5f);
+        float fadeTime = 0;
+        float fadeDuration = 0.5f;
+        Color originalColor = countdownText.color;
+        
+        while (fadeTime < fadeDuration)
+        {
+            float t = fadeTime / fadeDuration;
+            Color newColor = originalColor;
+            newColor.a = Mathf.Lerp(1, 0, t);
+            countdownText.color = newColor;
+            fadeTime += Time.deltaTime;
+            yield return null;
+        }
+        
+        // Ripristina l'alpha del testo per usi futuri
+        Color resetColor = countdownText.color;
+        resetColor.a = 1;
+        countdownText.color = resetColor;
+        
+        // Nascondi il pannello
+        countdownPanel.SetActive(false);
+    }
+    
+    public void HideCountdown()
+    {
+        if (countdownPanel != null)
+            countdownPanel.SetActive(false);
     }
 
     public void UpdateScoreText()
@@ -79,7 +151,7 @@ public class InGameUIManager : MonoBehaviour
     public void ShowGameOver()
     {
         gameOverPanel.SetActive(true);
-        finalScoreText.text = $"Final Score: {Mathf.FloorToInt(GameplayManager.Instance.score)}";
+        finalScoreText.text = $"<color=#FF8B00>Final Score:</color> <color=#FFFFFF>{Mathf.FloorToInt(GameplayManager.Instance.score):D8}</color>";
         SaveHighScore();
     }
 
@@ -94,7 +166,7 @@ public class InGameUIManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        highScoreText.text = $"High Score: {PlayerPrefs.GetInt("HighScore")}";
+        highScoreText.text = $"<color=#FFFFFF>High Score:</color> <color=#FF8B00> {PlayerPrefs.GetInt("HighScore"):D8}</color>";
     }
 
     public void RestartGame()

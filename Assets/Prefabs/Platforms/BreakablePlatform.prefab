@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 2
+  audioClip: {fileID: 8300000, guid: e74b36cf276d07f40b13cafe38d1e6a3, type: 3}
   breakDelay: 0.1
   breakSprites:
   - {fileID: 21300000, guid: 62d09617749c81b4b92d0f6b30bf1b31, type: 3}

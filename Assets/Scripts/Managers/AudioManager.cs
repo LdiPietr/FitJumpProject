@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -6,10 +7,15 @@ public class AudioManager : MonoBehaviour
 
     public AudioSource musicSource;
     public AudioSource sfxSource;
-    
+
     public AudioClip jumpSound;
-    public AudioClip powerUpSound;
+    public AudioClip shield;
+    public AudioClip jet;
+    public AudioClip enemyDeath;
     public AudioClip gameOverSound;
+
+    public bool isMusicPlaying;
+    public bool isSFXPlaying;
 
     private void Awake()
     {
@@ -22,6 +28,12 @@ public class AudioManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Update()
+    {
+        isMusicPlaying = musicSource.volume > 0;
+        isSFXPlaying = sfxSource.volume > 0;
     }
 
     public void SetMusicVolume(float volume)
@@ -50,16 +62,6 @@ public class AudioManager : MonoBehaviour
         musicSource.Stop();
     }
     
-    public void PlayJumpSound()
-    {
-        sfxSource.PlayOneShot(jumpSound);
-    }
-
-    public void PlayPowerUpSound()
-    {
-        sfxSource.PlayOneShot(powerUpSound);
-    }
-
     public void PlayGameOverSound()
     {
         sfxSource.PlayOneShot(gameOverSound);

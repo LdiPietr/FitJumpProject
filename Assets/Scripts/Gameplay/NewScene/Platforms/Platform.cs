@@ -12,6 +12,7 @@ public class Platform : MonoBehaviour
     }
 
     public PlatformType type;
+    public AudioClip audioClip;
     protected bool isActive = true;
 
     protected virtual void OnCollisionEnter2D(Collision2D collision)

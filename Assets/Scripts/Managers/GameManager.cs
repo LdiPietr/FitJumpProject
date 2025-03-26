@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,9 +21,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void StartGame(bool tournamentMode)
+    private void Start()
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
+    }
+
+    public void StartGame(bool tournamentMode)
+    {
         score = 0;
         isTournamentMode = tournamentMode;
         SceneManager.LoadScene(tournamentMode ? "GameplayTournament" : "GameplayTraining");
@@ -47,4 +52,11 @@ public class GameManager : MonoBehaviour
     {
         score += points;
     }
+    
+    void OnApplicationQuit()
+    {
+        // Ripristina il timeout dello sleep quando l'applicazione viene chiusa
+        Screen.sleepTimeout = SleepTimeout.SystemSetting;
+    }
+
 }

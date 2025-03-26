@@ -5,6 +5,7 @@ public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
     public Sprite[] sprites;
+    public Sprite super;
     public SpriteRenderer spriteRenderer;
     public float moveSpeed = 10f;
     public float jumpForce = 10f;
@@ -27,6 +28,9 @@ public class PlayerController : MonoBehaviour
     public GameObject shieldVisual;
     public GameObject jetpackVisual;
 
+    private bool gameStarted = false;
+    public float countdownDuration = 3f;
+
     private float screenHalfWidthInWorldUnits;
 
     private void Awake()
@@ -37,15 +41,41 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        GetComponent<BoxCollider2D>().enabled = false;
         spriteRenderer = GetComponent<SpriteRenderer>();
 
         // Calcola la metà della larghezza dello schermo in unità del mondo
         float halfPlayerWidth = transform.localScale.x / 2f;
         screenHalfWidthInWorldUnits = Camera.main.aspect * Camera.main.orthographicSize - halfPlayerWidth;
+
+        StartCoroutine(StartGameCountdown());
+    }
+
+    private IEnumerator StartGameCountdown()
+    {
+        // Disabilita il movimento impostando la velocità a zero
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 0; // Disabilita la gravità durante il countdown
+
+        // Chiedi all'UI Manager di mostrare il countdown
+        InGameUIManager.Instance.ShowCountdown(countdownDuration);
+
+        // Attendi per la durata del countdown
+        yield return new WaitUntil(() => !InGameUIManager.Instance.countdownPanel.activeSelf);
+
+        GetComponent<BoxCollider2D>().enabled = true;
+        // Abilita il movimento
+        gameStarted = true;
+        rb.gravityScale = 1; // Ripristina la gravità
+
+        // Nascondi il countdown
+        InGameUIManager.Instance.HideCountdown();
     }
 
     private void Update()
     {
+        if (!gameStarted) return;
+
         HandleMovement();
         HandlePowerUps();
         CheckScreenWrap();
@@ -80,11 +110,20 @@ public class PlayerController : MonoBehaviour
             gameObject.SetActive(false);
         }
 
-        spriteRenderer.sprite = rb.linearVelocity.y < -0.5f ? sprites[3] : sprites[0];
+        if (jetpackTimer > 0)
+        {
+            spriteRenderer.sprite = super;
+        }
+        else
+        {
+            spriteRenderer.sprite = rb.linearVelocity.y < -0.5f ? sprites[3] : sprites[0];
+        }
     }
 
     private void HandleMovement()
     {
+        if (!gameStarted) return;
+
         // Ottieni l'input dell'accelerometro
         Vector3 acceleration = Input.acceleration;
 
@@ -145,6 +184,7 @@ public class PlayerController : MonoBehaviour
         shieldTimer = duration;
         shieldVisual.SetActive(true);
         StartCoroutine(shieldVisual.GetComponent<VisualShield>().UpdateShield());
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.shield);
     }
 
     public void ActivateJetpack(float duration, float force)
@@ -153,6 +193,7 @@ public class PlayerController : MonoBehaviour
         jetpackTimer = duration;
         jetpackForce = force;
         jetpackVisual.SetActive(true);
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.jet);
     }
 
     public bool HasShield()
@@ -177,6 +218,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Platform") && rb.linearVelocity.y <= 0)
         {
             rb.linearVelocity = Vector2.up * jumpForce;
+            AudioManager.Instance.PlaySFX(collision.gameObject.GetComponent<Platform>().audioClip);
         }
         else if (collision.gameObject.CompareTag("Enemy"))
         {

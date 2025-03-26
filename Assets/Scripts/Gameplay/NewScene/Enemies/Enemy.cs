@@ -49,6 +49,7 @@ public class Enemy : MonoBehaviour
     {
         GameplayManager.Instance.AddScore(scoreValue);
         ParticleController.Instance.PlayEnemyDeathEffect(transform.position);
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyDeath);
         Destroy(gameObject);
     }
 }

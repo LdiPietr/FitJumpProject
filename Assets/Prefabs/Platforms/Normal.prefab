@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_SurfaceArc
       value: 160
       objectReference: {fileID: 0}
+    - target: {fileID: 5684561454181027664, guid: 0582e86acf45ed442a9884c4d33f7475, type: 3}
+      propertyPath: audioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: a9436c99f400ee04c9defc2dde0dfa9d, type: 3}
     - target: {fileID: 5726723426619730515, guid: 0582e86acf45ed442a9884c4d33f7475, type: 3}
       propertyPath: m_RootOrder
       value: 0

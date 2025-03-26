@@ -162,5 +162,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 3
+  audioClip: {fileID: 8300000, guid: 2d66ea7e588db80468cfeae535a3dc44, type: 3}
   boostForce: 10
   duration: 0.25

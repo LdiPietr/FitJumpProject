@@ -21,6 +21,7 @@ public class DisappearingPlatform : Platform
             Rigidbody2D playerRb = collision.gameObject.GetComponent<Rigidbody2D>();
             if (playerRb.linearVelocity.y <= 0)
             {
+                AudioManager.Instance.PlaySFX(audioClip);
                 playerRb.linearVelocity = new Vector2(playerRb.linearVelocity.x, boostForce);
             }
         }

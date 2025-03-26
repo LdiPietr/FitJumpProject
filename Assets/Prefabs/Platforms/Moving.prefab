@@ -150,6 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 1
+  audioClip: {fileID: 8300000, guid: a9436c99f400ee04c9defc2dde0dfa9d, type: 3}
   minMoveSpeed: 1
   maxMoveSpeed: 3
   minMoveDistance: 1
