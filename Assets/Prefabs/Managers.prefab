@@ -42,8 +42,8 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: d09ea0ea0972bdf4484dffdb41e6278e, type: 3}
-  m_Resource: {fileID: 8300000, guid: d09ea0ea0972bdf4484dffdb41e6278e, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 554a8717772b3e543afb35e21b065f4e, type: 3}
+  m_Resource: {fileID: 8300000, guid: 554a8717772b3e543afb35e21b065f4e, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.5
   m_Pitch: 1
@@ -178,6 +178,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   score: 0
   isTournamentMode: 0
+  userName: 
+  loged: 0
+  tickets: 0
 --- !u!114 &4642574340037275365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,13 +195,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicSource: {fileID: 5579663939310977001}
   sfxSource: {fileID: 3353582931711158384}
-  jumpSound: {fileID: 0}
+  musicClipMenu: {fileID: 8300000, guid: 14fe2682cc2d0b8478561f5370f1b3b8, type: 3}
+  musicClipGameplay: {fileID: 8300000, guid: 554a8717772b3e543afb35e21b065f4e, type: 3}
   shield: {fileID: 8300000, guid: 1c26df4bbef4f014b9ab0c6462adc05f, type: 3}
   jet: {fileID: 8300000, guid: c93cf8f9036eda440b71ba68d8c3630e, type: 3}
   enemyDeath: {fileID: 8300000, guid: 7b99e05fd168d3c47bedec3d1103c4a1, type: 3}
-  gameOverSound: {fileID: 0}
-  isMusicPlaying: 0
-  isSFXPlaying: 0
+  gameOverSound: {fileID: 8300000, guid: 9061d0ef429376f43ac1e15cb2438fa6, type: 3}
 --- !u!1 &6406817784930538812
 GameObject:
   m_ObjectHideFlags: 0

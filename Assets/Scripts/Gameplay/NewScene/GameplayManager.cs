@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameplayManager : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class GameplayManager : MonoBehaviour
 
     public void StartGame()
     {
+        AudioManager.Instance.PlayMusic(AudioManager.Instance.musicClipGameplay);
         score = 0;
         difficulty = 1;
         isGameOver = false;
@@ -80,5 +82,10 @@ public class GameplayManager : MonoBehaviour
     private void UpdateDifficulty()
     {
         difficulty = 1 + (score / 1000);
+    }
+    
+    public void BackToMenu()
+    {
+        SceneManager.LoadScene("TitleScreen");
     }
 }

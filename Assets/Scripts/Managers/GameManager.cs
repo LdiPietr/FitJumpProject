@@ -7,6 +7,9 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public int score = 0;
     public bool isTournamentMode = false;
+    public string userName;
+    public bool loged;
+    public int tickets = 0;
 
     void Awake()
     {

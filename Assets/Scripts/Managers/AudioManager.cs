@@ -8,14 +8,12 @@ public class AudioManager : MonoBehaviour
     public AudioSource musicSource;
     public AudioSource sfxSource;
 
-    public AudioClip jumpSound;
+    public AudioClip musicClipMenu;
+    public AudioClip musicClipGameplay;
     public AudioClip shield;
     public AudioClip jet;
     public AudioClip enemyDeath;
     public AudioClip gameOverSound;
-
-    public bool isMusicPlaying;
-    public bool isSFXPlaying;
 
     private void Awake()
     {
@@ -28,12 +26,6 @@ public class AudioManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-    }
-
-    private void Update()
-    {
-        isMusicPlaying = musicSource.volume > 0;
-        isSFXPlaying = sfxSource.volume > 0;
     }
 
     public void SetMusicVolume(float volume)
