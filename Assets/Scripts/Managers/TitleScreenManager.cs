@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using PlayFab;
+using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -23,11 +27,11 @@ public class TitleScreenManager : MonoBehaviour
     public TMP_InputField regData;
     public TMP_InputField regName;
     public TMP_InputField regSurname;
+    public TextMeshProUGUI wrongRegistrationMessage;
     public GameObject regWrongLoginMessage;
     public GameObject regFaqMessage;
     public GameObject regSuccessMessage;
     public GameObject regPrivacyMessage;
-    public Button regConfirmButton;
 
     [Space(10)] [Header("GamePanel")] public GameObject gameInit;
     public GameObject tournamentPanel;
@@ -49,12 +53,11 @@ public class TitleScreenManager : MonoBehaviour
         AudioManager.Instance.PlayMusic(AudioManager.Instance.musicClipMenu);
         if (GameManager.Instance.loged)
         {
-            nameText.text = usernameInput.text;
+            nameText.text = GameManager.Instance.userName;
             ShowGamePanel();
         }
         else
         {
-            regConfirmButton.interactable = false;
             titlePanel.SetActive(true);
             loginPanel.SetActive(false);
             registerPanel.SetActive(false);
@@ -81,16 +84,25 @@ public class TitleScreenManager : MonoBehaviour
 
     public void Login()
     {
-        if (usernameInput.text == "luca" || passwordInput.text == "luca")
+        if (string.IsNullOrEmpty(usernameInput.text) || string.IsNullOrEmpty(passwordInput.text))
         {
-            GameManager.Instance.userName = usernameInput.text;
-            GameManager.Instance.loged = true;
-            nameText.text = usernameInput.text;
-            ShowGamePanel();
+            wrongLoginMessage.SetActive(true);
         }
         else
         {
-            wrongLoginMessage.SetActive(true);
+            PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, (success) =>
+            {
+                if (success)
+                {
+                    nameText.text = GameManager.Instance.userName;
+                    GameManager.Instance.loged = true;
+                    ShowGamePanel();
+                }
+                else
+                {
+                    wrongLoginMessage.SetActive(true);
+                }
+            });
         }
     }
 
@@ -138,15 +150,96 @@ public class TitleScreenManager : MonoBehaviour
         regFaqMessage.SetActive(false);
     }
 
-    public void RegPrivacyMessage()
-    {
-        regPrivacyMessage.SetActive(true);
-        regConfirmButton.interactable = true;
-    }
-
     public void RegPrivacyMessageClose()
     {
         regPrivacyMessage.SetActive(false);
+    }
+
+    private void RegisterWithPlayFab(string username, string password, string email, string city, string birthDate)
+    {
+        var request = new RegisterPlayFabUserRequest
+        {
+            Username = username,
+            Password = password,
+            Email = email,
+            RequireBothUsernameAndEmail = true
+        };
+
+        PlayFabClientAPI.RegisterPlayFabUser(request,
+            result =>
+            {
+                // Registrazione riuscita
+                Debug.Log("Registrazione completata con successo!");
+
+                // Aggiorna i dati del profilo utente con città e data di nascita
+                UpdateUserData(city, birthDate);
+
+                GameManager.Instance.userName = regUsernameInput.text;
+                GameManager.Instance.loged = true;
+                nameText.text = regName.text;
+                regSuccessMessage.SetActive(true);
+                regPrivacyMessage.SetActive(false);
+            },
+            error =>
+            {
+                // Gestione dettagliata degli errori
+                string errorMessage = "Errore durante la registrazione: ";
+
+                // Controlla il tipo di errore specifico
+                switch (error.Error)
+                {
+                    case PlayFabErrorCode.UsernameNotAvailable:
+                        errorMessage += "Nome utente già in uso.";
+                        break;
+                    case PlayFabErrorCode.EmailAddressNotAvailable:
+                        errorMessage += "Indirizzo email già in uso.";
+                        break;
+                    case PlayFabErrorCode.InvalidEmailAddress:
+                        errorMessage += "Indirizzo email non valido.";
+                        break;
+                    case PlayFabErrorCode.InvalidPassword:
+                        errorMessage += "Password non valida.";
+                        break;
+                    case PlayFabErrorCode.InvalidParams:
+                        errorMessage += "Parametri non validi. Verifica tutti i campi.";
+                        break;
+                    default:
+                        // Mostra il messaggio di errore specifico se disponibile
+                        errorMessage += error.ErrorMessage ?? "Errore sconosciuto.";
+                        break;
+                }
+
+                Debug.LogError(errorMessage);
+
+                // Mostra il messaggio di errore all'utente
+                regPrivacyMessage.SetActive(false);
+                regWrongLoginMessage.SetActive(true);
+                wrongRegistrationMessage.text = errorMessage;
+            });
+    }
+
+// Funzione per aggiornare i dati utente dopo la registrazione
+    private void UpdateUserData(string city, string birthDate)
+    {
+        var request = new UpdateUserDataRequest
+        {
+            Data = new Dictionary<string, string>
+            {
+                { "City", city },
+                { "BirthDate", birthDate }
+            }
+        };
+
+        PlayFabClientAPI.UpdateUserData(request,
+            result => { Debug.Log("Dati utente aggiornati con successo!"); },
+            error => { Debug.LogError("Errore nell'aggiornamento dei dati utente: " + error.ErrorMessage); });
+    }
+
+
+    public void RegSuccess()
+    {
+        RegisterWithPlayFab(regUsernameInput.text, regPasswordInput.text, regEmailInput.text, regPasswordInput.text,
+            regData.text);
     }
 
     public void RegSuccessMessageClose()
@@ -162,47 +255,132 @@ public class TitleScreenManager : MonoBehaviour
 
     public void Register()
     {
-        if (regUsernameInput.text == "")
+        if (string.IsNullOrWhiteSpace(regName.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text = "Inserire nome";
         }
 
-        else if (regPasswordInput.text == "")
+        else if (string.IsNullOrWhiteSpace(regSurname.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text =
+                "Inserire cognnome";
         }
 
-        else if (regEmailInput.text == "")
+        else if (string.IsNullOrWhiteSpace(regCity.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text = "La città deve contenere un campo valido.";
         }
 
-        else if (regCity.text == "")
+        else if (string.IsNullOrWhiteSpace(regData.text) || !IsValidDate(regData.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text = "Il campo deve contenere una data valida.";
         }
 
-        else if (regData.text == "")
+        else if (string.IsNullOrWhiteSpace(regUsernameInput.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text = "Inserire un nome utente valido.";
         }
 
-        else if (regName.text == "")
+        else if (string.IsNullOrWhiteSpace(regPasswordInput.text) || !IsValidPassword(regPasswordInput.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text =
+                "La password deve contenere almeno 8 caratteri, almeno una lettera maiuscola e almeno un numero.";
         }
 
-        else if (regSurname.text == "")
+        else if (string.IsNullOrWhiteSpace(regEmailInput.text) || !IsValidEmail(regEmailInput.text))
         {
             regWrongLoginMessage.SetActive(true);
+            wrongRegistrationMessage.text = "Email errata";
         }
 
         else
         {
-            GameManager.Instance.userName = regUsernameInput.text;
-            GameManager.Instance.loged = true;
-            nameText.text = regName.text;
-            regSuccessMessage.SetActive(true);
+            //Formatta la città
+
+            var formattedCity = regCity.text.Trim();
+            if (formattedCity.Length > 0)
+            {
+                formattedCity = char.ToUpper(formattedCity[0]) +
+                                (formattedCity.Length > 1 ? formattedCity.Substring(1).ToLower() : "");
+                regCity.text = formattedCity;
+            }
+
+            regPrivacyMessage.SetActive(true);
+        }
+    }
+
+    #endregion
+
+    #region Validation
+
+    // Funzione per validare il formato della data
+    private bool IsValidDate(string date)
+    {
+        // Verifica il formato GG/MM/AAAA
+        if (!System.Text.RegularExpressions.Regex.IsMatch(date, @"^\d{2}/\d{2}/\d{4}$"))
+            return false;
+
+        string[] parts = date.Split('/');
+        int day = int.Parse(parts[0]);
+        int month = int.Parse(parts[1]);
+        int year = int.Parse(parts[2]);
+
+        // Verifica che l'anno sia ragionevole (ad esempio tra 1900 e 2100)
+        if (year < 1900 || year > 2100)
+            return false;
+
+        // Verifica che il mese sia valido
+        if (month < 1 || month > 12)
+            return false;
+
+        // Verifica che il giorno sia valido per il mese specificato
+        int daysInMonth = DateTime.DaysInMonth(year, month);
+        if (day < 1 || day > daysInMonth)
+            return false;
+
+        return true;
+    }
+
+    // Funzione per validare la password
+    private bool IsValidPassword(string password)
+    {
+        // Almeno 8 caratteri
+        if (password.Length < 8)
+            return false;
+
+        // Almeno una lettera maiuscola
+        if (!password.Any(char.IsUpper))
+            return false;
+
+        // Almeno una lettera minuscola
+        if (!password.Any(char.IsLower))
+            return false;
+
+        // Almeno un numero
+        if (!password.Any(char.IsDigit))
+            return false;
+
+        return true;
+    }
+
+    // Funzione per validare l'email
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            // Usa la classe MailAddress per validare l'email
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
         }
     }
 
