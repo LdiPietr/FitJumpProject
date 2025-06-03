@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using PlayFab;
@@ -42,6 +43,8 @@ public class TitleScreenManager : MonoBehaviour
     public GameObject shopSuccessMessage;
     public TextMeshProUGUI shopMessageTitle;
     public TextMeshProUGUI shopMessageText;
+    public List<PlayerLeaderboardEntry> mon_leaderboard = new List<PlayerLeaderboardEntry>();
+    public List<PlayerLeaderboardEntry> wee_leaderboard = new List<PlayerLeaderboardEntry>();
 
 
     [Space(10)] [Header("Misc")] public TextMeshProUGUI nameText;
@@ -55,6 +58,7 @@ public class TitleScreenManager : MonoBehaviour
         {
             nameText.text = GameManager.Instance.userName;
             ShowGamePanel();
+            GameManager.Instance.isTournamentMode = false;
         }
         else
         {
@@ -80,6 +84,9 @@ public class TitleScreenManager : MonoBehaviour
         titlePanel.SetActive(false);
         loginPanel.SetActive(false);
         gamePanel.SetActive(true);
+
+        wee_leaderboard = PlayFabManager.Instance.GetLeaderboard("WeeklyScore");
+        mon_leaderboard = PlayFabManager.Instance.GetLeaderboard("YearlyScore");
     }
 
     public void Login()
@@ -90,21 +97,24 @@ public class TitleScreenManager : MonoBehaviour
         }
         else
         {
-            PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, (success) =>
-            {
-                if (success)
-                {
-                    nameText.text = GameManager.Instance.userName;
-                    GameManager.Instance.loged = true;
-                    ShowGamePanel();
-                }
-                else
-                {
-                    wrongLoginMessage.SetActive(true);
-                }
-            });
+            PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, this);
         }
     }
+
+    public void LoginEnd(bool success)
+    {
+        if (success)
+        {
+            nameText.text = GameManager.Instance.userName;
+            GameManager.Instance.loged = true;
+            ShowGamePanel();
+        }
+        else
+        {
+            wrongLoginMessage.SetActive(true);
+        }
+    }
+
 
     public void RegisterOperations()
     {
@@ -136,6 +146,12 @@ public class TitleScreenManager : MonoBehaviour
     public void PlayGame()
     {
         SceneManager.LoadScene("GameplayTraining");
+    }
+
+    public void PlayTournament()
+    {
+        GameManager.Instance.isTournamentMode = true;
+        SceneManager.LoadScene("GameplayTournament");
     }
 
     #region Registration
@@ -179,6 +195,17 @@ public class TitleScreenManager : MonoBehaviour
                 nameText.text = regName.text;
                 regSuccessMessage.SetActive(true);
                 regPrivacyMessage.SetActive(false);
+                var request = new UpdateUserTitleDisplayNameRequest
+                {
+                    DisplayName = username
+                };
+
+                PlayFabClientAPI.UpdateUserTitleDisplayName(request,
+                    result => { Debug.Log("Display name impostato con successo: " + result.DisplayName); },
+                    error =>
+                    {
+                        Debug.LogError("Errore nell'impostazione del display name: " + error.GenerateErrorReport());
+                    });
             },
             error =>
             {
@@ -319,7 +346,7 @@ public class TitleScreenManager : MonoBehaviour
 
     #region Validation
 
-    // Funzione per validare il formato della data
+// Funzione per validare il formato della data
     private bool IsValidDate(string date)
     {
         // Verifica il formato GG/MM/AAAA
@@ -347,7 +374,7 @@ public class TitleScreenManager : MonoBehaviour
         return true;
     }
 
-    // Funzione per validare la password
+// Funzione per validare la password
     private bool IsValidPassword(string password)
     {
         // Almeno 8 caratteri
@@ -369,7 +396,7 @@ public class TitleScreenManager : MonoBehaviour
         return true;
     }
 
-    // Funzione per validare l'email
+// Funzione per validare l'email
     private bool IsValidEmail(string email)
     {
         try
@@ -415,36 +442,62 @@ public class TitleScreenManager : MonoBehaviour
 
     public void WeeklyLeaderboard()
     {
-        leaderboardText.text = "CLASSIFICA SETTIMANALE\n\n\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPEPePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n\n\n" +
-                               "Il tuo nome - 525646";
+        leaderboardText.text = "CLASSIFICA SETTIMANALE\n\n\n";
+
+        foreach (var pos in wee_leaderboard)
+        {
+            leaderboardText.text += pos.DisplayName + "  " + pos.StatValue + "\n";
+        }
+
+        var request = new GetPlayerStatisticsRequest
+        {
+            StatisticNames = new List<string> { "WeeklyScore" }
+        };
+
+        PlayFabClientAPI.GetPlayerStatistics(request, result =>
+            {
+                foreach (var stat in result.Statistics)
+                {
+                    if (stat.StatisticName == "WeeklyScore")
+                    {
+                        leaderboardText.text += "\n\n" + GameManager.Instance.userName + "  " + stat.Value;
+                        return;
+                    }
+                }
+
+                Debug.Log($"Nessun punteggio registrato per '{"WeeklyScore"}'");
+            },
+            error => { Debug.LogError("Errore nel recupero delle statistiche: " + error.GenerateErrorReport()); });
     }
 
     public void MonthlyLeaderboard()
     {
-        leaderboardText.text = "CLASSIFICA MENSILE\n\n\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPEPePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n" +
-                               "PePPE\n\n\n" +
-                               "Il tuo nome - 525646";
+        leaderboardText.text = "CLASSIFICA MENSILE\n\n\n";
+
+        foreach (var pos in mon_leaderboard)
+        {
+            leaderboardText.text += pos.DisplayName + "  " + pos.StatValue + "\n";
+        }
+
+        var request = new GetPlayerStatisticsRequest
+        {
+            StatisticNames = new List<string> { "MonthlyScore" }
+        };
+
+        PlayFabClientAPI.GetPlayerStatistics(request, result =>
+            {
+                foreach (var stat in result.Statistics)
+                {
+                    if (stat.StatisticName == "MonthlyScore")
+                    {
+                        leaderboardText.text += "\n\n" + GameManager.Instance.userName + "  " + stat.Value;
+                        return;
+                    }
+                }
+
+                Debug.Log($"Nessun punteggio registrato per '{"MonthlyScore"}'");
+            },
+            error => { Debug.LogError("Errore nel recupero delle statistiche: " + error.GenerateErrorReport()); });
     }
 
     #endregion

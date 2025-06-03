@@ -3,12 +3,15 @@ using PlayFab;
 using PlayFab.ClientModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class PlayFabManager : MonoBehaviour
 {
     public static PlayFabManager Instance { get; private set; }
 
     [SerializeField] private string titleId;
+
+    private TitleScreenManager titleScreenManager;
 
     public bool IsLoggedIn { get; private set; }
     public string PlayFabId { get; private set; }
@@ -34,54 +37,7 @@ public class PlayFabManager : MonoBehaviour
 
     #region Authentication
 
-    public void RegisterUser(string username, string email, string password, string data, string city,
-        Action<bool> callback)
-    {
-        // Aggiungi questo controllo prima della registrazione
-        if (Application.internetReachability == NetworkReachability.NotReachable)
-        {
-            Debug.LogError("Nessuna connessione internet disponibile");
-            callback(false);
-            return;
-        }
-
-        var request = new RegisterPlayFabUserRequest
-        {
-            Username = username,
-            DisplayName = username,
-            Email = email,
-            Password = password,
-            PlayerSecret = data + " " + city,
-            RequireBothUsernameAndEmail = true
-        };
-
-        PlayFabClientAPI.RegisterPlayFabUser(request,
-            result =>
-            {
-                Debug.Log("Registrazione completata con successo!");
-                PlayFabId = result.PlayFabId;
-                var updateRequest = new UpdateUserDataRequest
-                {
-                    Data = new Dictionary<string, string>
-                    {
-                        { "City", city },
-                        { "Data", data }
-                    }
-                };
-                PlayFabClientAPI.UpdateUserData(updateRequest, updateResult => { callback(true); },
-                    error => Debug.LogError($"Errore durante l'aggiornamento dei dati: {error.ErrorMessage}"));
-                IsLoggedIn = true;
-                callback(true);
-            },
-            error =>
-            {
-                Debug.LogError($"Errore durante la registrazione: {error.ErrorMessage}");
-                callback(false);
-            }
-        );
-    }
-
-    public void LoginWithEmail(string email, string password, Action<bool> callback)
+    public void LoginWithEmail(string email, string password, TitleScreenManager tScreenManager)
     {
         var request = new LoginWithEmailAddressRequest
         {
@@ -89,144 +45,159 @@ public class PlayFabManager : MonoBehaviour
             Password = password,
             InfoRequestParameters = new GetPlayerCombinedInfoRequestParams
             {
+                GetUserAccountInfo = true,
                 GetPlayerProfile = true,
-                GetUserAccountInfo = true
+                GetPlayerStatistics = true, // Ottieni anche i punteggi
+                ProfileConstraints = new PlayerProfileViewConstraints
+                {
+                    ShowDisplayName = true
+                }
             }
         };
+        
+        titleScreenManager = tScreenManager;
 
+        PlayFabClientAPI.LoginWithEmailAddress(request, OnLoginSuccess, OnLoginError);
+    }
 
-        PlayFabClientAPI.LoginWithEmailAddress(request,
-            result =>
-            {
-                Debug.Log("Login completato con successo!");
-                PlayFabId = result.PlayFabId;
-                if (result.InfoResultPayload != null)
-                {
-                    if (result.InfoResultPayload.PlayerProfile != null)
-                    {
-                        GameManager.Instance.userName = result.InfoResultPayload.PlayerProfile.DisplayName;
-                    }
-                    else if (result.InfoResultPayload.AccountInfo != null)
-                    {
-                        GameManager.Instance.userName = result.InfoResultPayload.AccountInfo.Username;
-                    }
-                }
+    private void OnLoginSuccess(LoginResult result)
+    {
+        Debug.Log("Login effettuato con successo!");
 
-                IsLoggedIn = true;
-                callback(true);
-            },
-            error =>
-            {
-                Debug.LogError($"Errore durante il login: {error.ErrorMessage}");
-                callback(false);
-            }
-        );
+        // ✅ Info di base
+        string playFabId = result.PlayFabId;
+        Debug.Log("PlayFabId: " + playFabId);
+
+        // ✅ Info account
+        var accountInfo = result.InfoResultPayload.AccountInfo;
+        if (accountInfo != null)
+        {
+            Debug.Log("Email: " + accountInfo.PrivateInfo.Email);
+            Debug.Log("Username: " + accountInfo.Username);
+            Debug.Log("DisplayName: " + accountInfo.TitleInfo.DisplayName);
+            
+            GameManager.Instance.userName = accountInfo.Username;
+            
+            titleScreenManager.LoginEnd(true);
+        }
+    }
+
+    private void OnLoginError(PlayFabError error)
+    {
+        titleScreenManager.LoginEnd(false);
     }
 
     #endregion
 
     #region Leaderboards
 
-    public void UpdateMonthlyLeaderboard(int score, Action<bool> callback)
+    public void SubmitScore(int score)
     {
-        var request = new UpdatePlayerStatisticsRequest
+        var request = new GetPlayerStatisticsRequest
         {
-            Statistics = new List<StatisticUpdate>
-            {
-                new StatisticUpdate
-                {
-                    StatisticName = "MonthlyScore",
-                    Value = score
-                }
-            }
+            StatisticNames = new List<string> { "WeeklyScore", "MonthlyScore", "YearlyScore" }
         };
 
-        PlayFabClientAPI.UpdatePlayerStatistics(request,
-            result =>
+        PlayFabClientAPI.GetPlayerStatistics(request, result =>
             {
-                Debug.Log("Punteggio mensile aggiornato con successo!");
-                callback(true);
-            },
-            error =>
-            {
-                Debug.LogError($"Errore nell'aggiornamento del punteggio mensile: {error.ErrorMessage}");
-                callback(false);
-            }
-        );
-    }
+                List<StatisticUpdate> statsToUpdate = new List<StatisticUpdate>();
 
-    public void UpdateYearlyLeaderboard(int score, Action<bool> callback)
-    {
-        var request = new UpdatePlayerStatisticsRequest
-        {
-            Statistics = new List<StatisticUpdate>
-            {
-                new StatisticUpdate
+                foreach (var stat in result.Statistics)
                 {
-                    StatisticName = "YearlyScore",
-                    Value = score
+                    if ((stat.StatisticName == "WeeklyScore" && score > stat.Value) ||
+                        (stat.StatisticName == "MonthlyScore" && score > stat.Value) ||
+                        (stat.StatisticName == "YearlyScore" && score > stat.Value))
+                    {
+                        statsToUpdate.Add(new StatisticUpdate
+                        {
+                            StatisticName = stat.StatisticName,
+                            Value = score
+                        });
+                    }
                 }
-            }
-        };
 
-        PlayFabClientAPI.UpdatePlayerStatistics(request,
-            result =>
-            {
-                Debug.Log("Punteggio annuale aggiornato con successo!");
-                callback(true);
+                // Se la statistica non esiste ancora, aggiungila
+                if (!result.Statistics.Any(s => s.StatisticName == "WeeklyScore"))
+                {
+                    statsToUpdate.Add(new StatisticUpdate { StatisticName = "WeeklyScore", Value = score });
+                }
+
+                if (!result.Statistics.Any(s => s.StatisticName == "MonthlyScore"))
+                {
+                    statsToUpdate.Add(new StatisticUpdate { StatisticName = "MonthlyScore", Value = score });
+                }
+
+                if (!result.Statistics.Any(s => s.StatisticName == "YearlyScore"))
+                {
+                    statsToUpdate.Add(new StatisticUpdate { StatisticName = "YearlyScore", Value = score });
+                }
+
+                if (statsToUpdate.Count > 0)
+                {
+                    var updateRequest = new UpdatePlayerStatisticsRequest
+                    {
+                        Statistics = statsToUpdate
+                    };
+
+                    PlayFabClientAPI.UpdatePlayerStatistics(updateRequest,
+                        updateResult => { Debug.Log("Statistiche aggiornate con successo!"); },
+                        error => Debug.LogError("Errore durante l'aggiornamento delle statistiche: " +
+                                                error.GenerateErrorReport()));
+                }
             },
-            error =>
-            {
-                Debug.LogError($"Errore nell'aggiornamento del punteggio annuale: {error.ErrorMessage}");
-                callback(false);
-            }
-        );
+            error => Debug.LogError("Errore durante il recupero delle statistiche: " + error.GenerateErrorReport()));
     }
 
-    public void GetMonthlyLeaderboard(Action<List<PlayerLeaderboardEntry>> callback)
+    public List<PlayerLeaderboardEntry> GetLeaderboard(string statisticName)
     {
         var request = new GetLeaderboardRequest
         {
-            StatisticName = "MonthlyScore",
+            StatisticName = statisticName,
             StartPosition = 0,
-            MaxResultsCount = 100
+            MaxResultsCount = 10
         };
 
-        PlayFabClientAPI.GetLeaderboard(request,
-            result =>
+        List<PlayerLeaderboardEntry> leaderboard = new List<PlayerLeaderboardEntry>();
+
+        PlayFabClientAPI.GetLeaderboard(request, result =>
             {
-                Debug.Log("Classifica mensile ottenuta con successo!");
-                callback(result.Leaderboard);
+                foreach (var entry in result.Leaderboard)
+                {
+                    Debug.Log($"{entry.Position + 1}: {entry.DisplayName ?? entry.PlayFabId} - {entry.StatValue}");
+                    leaderboard.Add(entry);
+                }
             },
             error =>
             {
-                Debug.LogError($"Errore nel recupero della classifica mensile: {error.ErrorMessage}");
-                callback(new List<PlayerLeaderboardEntry>());
-            }
-        );
+                Debug.LogError("Errore durante il recupero della classifica: " + error.GenerateErrorReport());
+            });
+        return leaderboard;
     }
 
-    public void GetYearlyLeaderboard(Action<List<PlayerLeaderboardEntry>> callback)
+    public int GetPlayerScore(string statisticName)
     {
-        var request = new GetLeaderboardRequest
+        var request = new GetPlayerStatisticsRequest
         {
-            StatisticName = "YearlyScore",
-            StartPosition = 0,
-            MaxResultsCount = 100
+            StatisticNames = new List<string> { statisticName } // Esempio: "WeeklyScore"
         };
+        int score = 0;
+        PlayFabClientAPI.GetPlayerStatistics(request, result =>
+            {
+                foreach (var stat in result.Statistics)
+                {
+                    if (stat.StatisticName == statisticName)
+                    {
+                        Debug.Log($"Punteggio attuale ({statisticName}): {stat.Value}");
+                        score = stat.Value;
+                        return;
+                    }
+                }
 
-        PlayFabClientAPI.GetLeaderboard(request,
-            result =>
-            {
-                Debug.Log("Classifica annuale ottenuta con successo!");
-                callback(result.Leaderboard);
+                Debug.Log($"Nessun punteggio registrato per '{statisticName}'");
             },
-            error =>
-            {
-                Debug.LogError($"Errore nel recupero della classifica annuale: {error.ErrorMessage}");
-                callback(new List<PlayerLeaderboardEntry>());
-            }
-        );
+            error => { Debug.LogError("Errore nel recupero delle statistiche: " + error.GenerateErrorReport()); });
+
+        return score;
     }
 
     #endregion
@@ -329,4 +300,72 @@ public class PlayFabManager : MonoBehaviour
     }
 
     #endregion
+
+    #region TEST
+
+    public void UpdateLeaderboardViaCloudScript(string statisticName, int score, Action<bool> callback)
+    {
+        Debug.Log($"Tentativo di aggiornare {statisticName} via Cloud Script con punteggio: {score}");
+
+        var request = new ExecuteCloudScriptRequest
+        {
+            FunctionName = "updateLeaderboard",
+            FunctionParameter = new
+            {
+                statisticName = statisticName,
+                value = score
+            },
+            GeneratePlayStreamEvent = true
+        };
+
+        PlayFabClientAPI.ExecuteCloudScript(request,
+            result =>
+            {
+                if (result.FunctionResult != null)
+                {
+                    var jsonResult = JsonUtility.FromJson<CloudScriptResult>(result.FunctionResult.ToString());
+                    if (jsonResult.success)
+                    {
+                        Debug.Log($"Cloud Script eseguito con successo: {jsonResult.message}");
+                        callback(true);
+                    }
+                    else
+                    {
+                        Debug.LogError($"Errore nel Cloud Script: {jsonResult.error}");
+                        callback(false);
+                    }
+                }
+                else
+                {
+                    Debug.Log("Cloud Script eseguito ma senza risultato");
+                    callback(true);
+                }
+            },
+            error =>
+            {
+                Debug.LogError($"Errore nell'esecuzione del Cloud Script: {error.ErrorMessage}");
+                callback(false);
+            }
+        );
+    }
+
+    [Serializable]
+    private class CloudScriptResult
+    {
+        public bool success;
+        public string message;
+        public string error;
+    }
+
+    #endregion
+}
+
+public class PlayerLeaderboardInfo
+{
+    public int WeeklyScore { get; set; } = 0;
+    public int MonthlyScore { get; set; } = 0;
+    public int YearlyScore { get; set; } = 0;
+    public int WeeklyPosition { get; set; } = 0;
+    public int MonthlyPosition { get; set; } = 0;
+    public int YearlyPosition { get; set; } = 0;
 }

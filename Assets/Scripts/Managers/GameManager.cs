@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public string userName;
     public bool loged;
     public int tickets = 0;
+    public PlayerLeaderboardInfo PlayerLeaderboardInfo; 
 
     void Awake()
     {
@@ -26,6 +27,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        PlayerLeaderboardInfo = new PlayerLeaderboardInfo();
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
     }
 
@@ -40,13 +42,10 @@ public class GameManager : MonoBehaviour
     {
         if (isTournamentMode)
         {
-            // Aggiorna il punteggio nel database
-            // Mostra la classifica
             SceneManager.LoadScene("Leaderboard");
         }
         else
         {
-            // Mostra il punteggio e offri opzioni per ricominciare o tornare al menu principale
             SceneManager.LoadScene("MainMenu");
         }
     }

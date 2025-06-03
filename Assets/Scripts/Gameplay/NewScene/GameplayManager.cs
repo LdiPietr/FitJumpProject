@@ -15,6 +15,9 @@ public class GameplayManager : MonoBehaviour
     public bool isGameOver;
     public int consecutiveJumps;
     public float comboMultiplier = 1f;
+    
+    [Header("Tournament Mode")]
+    public bool isTournamentMode;
 
     private void Awake()
     {

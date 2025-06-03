@@ -7,9 +7,8 @@ using UnityEngine.UI;
 public class InGameUIManager : MonoBehaviour
 {
     private static InGameUIManager _instance;
-    
-    [Header("Countdown")]
-    public GameObject countdownPanel;
+
+    [Header("Countdown")] public GameObject countdownPanel;
     public TextMeshProUGUI countdownText;
 
     public static InGameUIManager Instance
@@ -35,6 +34,14 @@ public class InGameUIManager : MonoBehaviour
     [Header("Power-up UI")] public Image shieldTimer;
     public Image jetpackTimer;
     public GameObject powerUpPanel;
+    
+    [Header("Tournament Canvas")]
+    public TextMeshProUGUI weeklyScoreText;
+    public TextMeshProUGUI monthlyScoreText;
+    public TextMeshProUGUI yearlyScoreText;
+    public TextMeshProUGUI weeklyPositionText;
+    public TextMeshProUGUI monthlyPositionText;
+    public TextMeshProUGUI yearlyPositionText;
 
     private void Awake()
     {
@@ -51,9 +58,8 @@ public class InGameUIManager : MonoBehaviour
         UpdateScoreText();
         UpdateComboText();
         gameOverPanel.SetActive(false);
-     
     }
-    
+
     public void ShowCountdown(float duration)
     {
         if (countdownPanel)
@@ -62,20 +68,20 @@ public class InGameUIManager : MonoBehaviour
             StartCoroutine(UpdateCountdownText(duration));
         }
     }
-    
+
     private IEnumerator UpdateCountdownText(float duration)
     {
         int count = Mathf.CeilToInt(duration);
-        
+
         while (count > 0)
         {
             countdownText.text = count.ToString();
-            
+
             // Effetto di animazione del testo (opzionale)
             countdownText.transform.localScale = Vector3.one * 1.5f;
             float elapsedTime = 0;
             float scaleDuration = 0.5f;
-            
+
             while (elapsedTime < scaleDuration)
             {
                 float t = elapsedTime / scaleDuration;
@@ -83,21 +89,21 @@ public class InGameUIManager : MonoBehaviour
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
-            
+
             count--;
             yield return new WaitForSeconds(0.5f); // Attendi il resto del secondo
         }
-        
+
         // Mostra "GO!" alla fine del countdown
         countdownText.text = "GO!";
         countdownText.transform.localScale = Vector3.one * 1.3f;
-        
+
         // Fai scomparire gradualmente "GO!"
         yield return new WaitForSeconds(0.5f);
         float fadeTime = 0;
         float fadeDuration = 0.5f;
         Color originalColor = countdownText.color;
-        
+
         while (fadeTime < fadeDuration)
         {
             float t = fadeTime / fadeDuration;
@@ -107,16 +113,16 @@ public class InGameUIManager : MonoBehaviour
             fadeTime += Time.deltaTime;
             yield return null;
         }
-        
+
         // Ripristina l'alpha del testo per usi futuri
         Color resetColor = countdownText.color;
         resetColor.a = 1;
         countdownText.color = resetColor;
-        
+
         // Nascondi il pannello
         countdownPanel.SetActive(false);
     }
-    
+
     public void HideCountdown()
     {
         if (countdownPanel != null)
@@ -151,8 +157,14 @@ public class InGameUIManager : MonoBehaviour
     public void ShowGameOver()
     {
         gameOverPanel.SetActive(true);
-        finalScoreText.text = $"<color=#FF8B00>Final Score:</color> <color=#FFFFFF>{Mathf.FloorToInt(GameplayManager.Instance.score):D8}</color>";
+        finalScoreText.text =
+            $"<color=#FF8B00>Final Score:</color> <color=#FFFFFF>{Mathf.FloorToInt(GameplayManager.Instance.score):D8}</color>";
         SaveHighScore();
+        if (GameManager.Instance.isTournamentMode)
+        {
+            int currentScore = Mathf.FloorToInt(GameplayManager.Instance.score);
+            PlayFabManager.Instance.SubmitScore(currentScore);
+        }
     }
 
     private void SaveHighScore()
@@ -166,7 +178,8 @@ public class InGameUIManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        highScoreText.text = $"<color=#FFFFFF>High Score:</color> <color=#FF8B00> {PlayerPrefs.GetInt("HighScore"):D8}</color>";
+        highScoreText.text =
+            $"<color=#FFFFFF>High Score:</color> <color=#FF8B00> {PlayerPrefs.GetInt("HighScore"):D8}</color>";
     }
 
     public void RestartGame()
