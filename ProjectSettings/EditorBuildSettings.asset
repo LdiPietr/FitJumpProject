@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameplayTraining.unity
     guid: e55d18df27d779c40a96db69e26ea905
+  - enabled: 1
+    path: Assets/Scenes/GameplayTournament.unity
+    guid: 5951be3c3833928418d19ee5f13c8c15
   m_configObjects:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: 65174c7377e94de4ab9fb628d15239c6, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 8c9578c1ed2c1f449b8be34a168956e4, type: 2}

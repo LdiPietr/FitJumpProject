@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using PlayFab;
 using PlayFab.ClientModels;
+using PlayFab.Internal;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class TitleScreenManager : MonoBehaviour
 {
@@ -91,13 +93,27 @@ public class TitleScreenManager : MonoBehaviour
 
     public void Login()
     {
+        Debug.Log("=== LOGIN DEBUG ===");
+        Debug.Log($"usernameInput è: {(usernameInput.text.Length)}");
+        Debug.Log($"passwordInput è: {(passwordInput.text.Length)}");
+
         if (string.IsNullOrEmpty(usernameInput.text) || string.IsNullOrEmpty(passwordInput.text))
         {
             wrongLoginMessage.SetActive(true);
         }
         else
         {
+#if UNITY_EDITOR
+            Log.Debug("sono qui");
+            if (usernameInput.text.Length==1) usernameInput.text = "luca@luca.it";
+            if (passwordInput.text.Length==1) passwordInput.text = "FitActive9";
             PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, this);
+
+#else
+Debug.Log("sono nel server");
+            PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, this);
+#endif
+            
         }
     }
 

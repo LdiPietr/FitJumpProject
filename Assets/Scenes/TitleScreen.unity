@@ -4200,7 +4200,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -69.97914}
+  m_AnchoredPosition: {x: 0, y: -69.979004}
   m_SizeDelta: {x: -180, y: -271.9583}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &379451974
@@ -4394,7 +4394,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &428804863
 RectTransform:
   m_ObjectHideFlags: 0
@@ -17443,6 +17443,8 @@ MonoBehaviour:
   shopSuccessMessage: {fileID: 428804862}
   shopMessageTitle: {fileID: 1439181951}
   shopMessageText: {fileID: 1747858737}
+  mon_leaderboard: []
+  wee_leaderboard: []
   nameText: {fileID: 1752391749}
   ticketsText: {fileID: 1393011116}
 --- !u!1 &1718302197
@@ -17607,7 +17609,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.53444445, y: 0.036000002}
   m_AnchorMax: {x: 0.9422196, y: 0.108}
-  m_AnchoredPosition: {x: -0.4968872, y: -5}
+  m_AnchoredPosition: {x: -0.49694824, y: -5}
   m_SizeDelta: {x: 4.81369, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1732576060

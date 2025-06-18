@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using PlayFab;
+using PlayFab.ClientModels;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -34,9 +36,8 @@ public class InGameUIManager : MonoBehaviour
     [Header("Power-up UI")] public Image shieldTimer;
     public Image jetpackTimer;
     public GameObject powerUpPanel;
-    
-    [Header("Tournament Canvas")]
-    public TextMeshProUGUI weeklyScoreText;
+
+    [Header("Tournament Canvas")] public TextMeshProUGUI weeklyScoreText;
     public TextMeshProUGUI monthlyScoreText;
     public TextMeshProUGUI yearlyScoreText;
     public TextMeshProUGUI weeklyPositionText;
@@ -164,7 +165,44 @@ public class InGameUIManager : MonoBehaviour
         {
             int currentScore = Mathf.FloorToInt(GameplayManager.Instance.score);
             PlayFabManager.Instance.SubmitScore(currentScore);
+
+            GetPlayerScoreAndRank("WeeklyScore", weeklyPositionText, weeklyScoreText);
+            GetPlayerScoreAndRank("MonthlyScore", monthlyPositionText, monthlyScoreText);
+            GetPlayerScoreAndRank("YearlyScore", yearlyPositionText, yearlyScoreText);
         }
+    }
+
+    public void GetPlayerScoreAndRank(string statisticName, TextMeshProUGUI positionText, TextMeshProUGUI points)
+    {
+        var request = new GetLeaderboardAroundPlayerRequest
+        {
+            StatisticName = statisticName,
+            MaxResultsCount = 1 // otteniamo solo il giocatore corrente
+        };
+
+        PlayFabClientAPI.GetLeaderboardAroundPlayer(request, result =>
+            {
+                if (result.Leaderboard != null && result.Leaderboard.Count > 0)
+                {
+                    var entry = result.Leaderboard[0];
+                    Debug.Log($" Statistica: {statisticName}");
+                    Debug.Log($" Nome: {entry.DisplayName ?? entry.PlayFabId}");
+                    Debug.Log($" Punteggio: {entry.StatValue}");
+                    Debug.Log($" Posizione: {entry.Position + 1}"); // 0-based → +1
+
+                    positionText.text = $"<color=#FF8B00>Position:</color> <color=#FFFFFF>{entry.Position + 1:D8}</color>";
+                    points.text =
+                        $"<color=#FF8B00>Score:</color> <color=#FFFFFF>{Mathf.FloorToInt(entry.StatValue + 1):D8}</color>";
+                }
+                else
+                {
+                    Debug.Log($"Nessun dato trovato nella leaderboard '{statisticName}' per questo giocatore.");
+                }
+            },
+            error =>
+            {
+                Debug.LogError(" Errore nel recuperare la posizione in classifica: " + error.GenerateErrorReport());
+            });
     }
 
     private void SaveHighScore()
@@ -179,7 +217,7 @@ public class InGameUIManager : MonoBehaviour
         }
 
         highScoreText.text =
-            $"<color=#FFFFFF>High Score:</color> <color=#FF8B00> {PlayerPrefs.GetInt("HighScore"):D8}</color>";
+            $"<color=#FF8B00>High Score:</color> <color=#FFFFFF> {PlayerPrefs.GetInt("HighScore"):D8}</color>";
     }
 
     public void RestartGame()
