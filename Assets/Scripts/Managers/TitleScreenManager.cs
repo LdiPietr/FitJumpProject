@@ -21,6 +21,7 @@ public class TitleScreenManager : MonoBehaviour
     [Space(10)] [Header("Login")] public TMPro.TMP_InputField usernameInput;
     public TMP_InputField passwordInput;
     public GameObject wrongLoginMessage;
+    public IAPManager iapManager;
 
 
     [Space(10)] [Header("Registration")] public TMPro.TMP_InputField regUsernameInput;
@@ -61,6 +62,7 @@ public class TitleScreenManager : MonoBehaviour
             nameText.text = GameManager.Instance.userName;
             ShowGamePanel();
             GameManager.Instance.isTournamentMode = false;
+            iapManager.RefreshTicketBalance();
         }
         else
         {
@@ -105,15 +107,14 @@ public class TitleScreenManager : MonoBehaviour
         {
 #if UNITY_EDITOR
             Log.Debug("sono qui");
-            if (usernameInput.text.Length==1) usernameInput.text = "luca@luca.it";
-            if (passwordInput.text.Length==1) passwordInput.text = "FitActive9";
+            if (usernameInput.text.Length == 1) usernameInput.text = "luca@luca.it";
+            if (passwordInput.text.Length == 1) passwordInput.text = "FitActive9";
             PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, this);
 
 #else
 Debug.Log("sono nel server");
             PlayFabManager.Instance.LoginWithEmail(usernameInput.text, passwordInput.text, this);
 #endif
-            
         }
     }
 
@@ -122,6 +123,8 @@ Debug.Log("sono nel server");
         if (success)
         {
             nameText.text = GameManager.Instance.userName;
+            iapManager.RefreshTicketBalance();
+
             GameManager.Instance.loged = true;
             ShowGamePanel();
         }
@@ -166,8 +169,23 @@ Debug.Log("sono nel server");
 
     public void PlayTournament()
     {
-        GameManager.Instance.isTournamentMode = true;
-        SceneManager.LoadScene("GameplayTournament");
+        if (!PlayFabClientAPI.IsClientLoggedIn())
+        {
+            Debug.LogError("Utente non loggato!");
+            return;
+        }
+
+        if (GameManager.Instance.tickets < 1)
+        {
+            Debug.Log("⚠️ Non hai abbastanza tickets per iniziare la partita.");
+            return;
+        }
+
+        iapManager.SpendTicketsAndStartMatch(1, () =>
+        {
+            GameManager.Instance.isTournamentMode = true;
+            SceneManager.LoadScene("GameplayTournament");
+        });
     }
 
     #region Registration
